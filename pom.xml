@@ -77,7 +77,7 @@
     </build>
 
     <scm>
-        <connection>scm:git:stefanofornari@github.com:stefanofornari/BshConsole.git</connection>
+        <connection>scm:git:git@github.com:stefanofornari/BshConsole.git</connection>
         <url>https://github.com/stefanofornari/BshConsole</url>
         <tag>bsh-console-1.0.0</tag>
     </scm>
