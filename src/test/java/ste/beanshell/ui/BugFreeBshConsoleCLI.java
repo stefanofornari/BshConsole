@@ -6,9 +6,7 @@
 package ste.beanshell.ui;
 
 import java.io.File;
-import org.apache.commons.io.FileUtils;
 import static org.assertj.core.api.BDDAssertions.then;
-import static org.junit.Assert.fail;
 import org.junit.Before;
 import org.junit.Test;
 import ste.xtest.cli.BugFreeCLI;
