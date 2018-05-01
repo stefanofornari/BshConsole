@@ -1,0 +1,2 @@
+print("Welcome to BshConsole v2");
+System.out.flush();
