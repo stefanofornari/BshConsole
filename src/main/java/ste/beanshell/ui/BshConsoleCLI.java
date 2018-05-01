@@ -64,9 +64,13 @@ public class BshConsoleCLI {
         final PipedInputStream  IN  = new PipedInputStream(OUT);
     
         Terminal terminal = TerminalBuilder.terminal();
-        LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).build();
+        LineReader lineReader = LineReaderBuilder.builder()
+                                    .terminal(terminal)
+                                    .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
+                                    .build();
         
         Interpreter bsh = new Interpreter(new InputStreamReader(IN), System.out, System.err, true);
+        bsh.setExitOnEOF(true);
         
         if (options.initScript != null) {
             try {
@@ -85,8 +89,12 @@ public class BshConsoleCLI {
             try {
                 line = lineReader.readLine();
             } catch (UserInterruptException e) {
-                // Ignore
+                System.out.println("Good bye!");
+                IN.close(); OUT.close();
+                return;
             } catch (EndOfFileException e) {
+                System.out.println("Reached end of file... closing.");
+                IN.close(); OUT.close();
                 return;
             }
            
