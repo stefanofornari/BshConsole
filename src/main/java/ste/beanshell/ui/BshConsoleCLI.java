@@ -26,6 +26,7 @@ import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import picocli.CommandLine;
@@ -62,15 +63,16 @@ public class BshConsoleCLI {
         
         final PipedOutputStream OUT = new PipedOutputStream();
         final PipedInputStream  IN  = new PipedInputStream(OUT);
+        
+        Interpreter bsh = new Interpreter(new InputStreamReader(IN), System.out, System.err, true);
+        bsh.setExitOnEOF(true);
     
         Terminal terminal = TerminalBuilder.terminal();
         LineReader lineReader = LineReaderBuilder.builder()
                                     .terminal(terminal)
+                                    .completer(new BshCompleter(bsh))
                                     .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
                                     .build();
-        
-        Interpreter bsh = new Interpreter(new InputStreamReader(IN), System.out, System.err, true);
-        bsh.setExitOnEOF(true);
         
         if (options.initScript != null) {
             try {

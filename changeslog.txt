@@ -1,3 +1,7 @@
 20180501
 --------
+- added auto-completing
+
+20180501
+--------
 -released v1.0.0 
