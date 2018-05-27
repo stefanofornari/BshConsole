@@ -6,17 +6,24 @@
 package ste.beanshell.ui;
 
 import java.io.File;
+import java.io.FileWriter;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.jline.reader.LineReader;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import ste.xtest.cli.BugFreeCLI;
+import ste.xtest.reflect.PrivateAccess;
 
 
 /**
  *
- * @author ste
  */
 public class BugFreeBshConsoleCLI extends BugFreeCLI {
+    @Rule
+    public final TemporaryFolder ADIR = new TemporaryFolder();
+    
     @Before
     public void before() throws Exception {
         STDOUT.clearLog();
@@ -58,6 +65,26 @@ public class BugFreeBshConsoleCLI extends BugFreeCLI {
         );
     }
     
+    @Test(timeout=1000)
+    public void persistent_history_simple_file() throws Exception {
+        final File INIT = new File(ADIR.getRoot(), "init.bsh");
+        final File HISTORY = new File(ADIR.getRoot(), "bshmybsh.history");
+        
+        FileWriter w = new FileWriter(INIT);
+        w.write("HISTORY_FILE=\"" + HISTORY.getAbsolutePath() + "\";");
+        w.close();
+        
+        BshConsoleCLI cli = new BshConsoleCLI();
+        cli.launch("--welcome", "--init", INIT.getAbsolutePath());
+
+        //
+        // I could not find a more reliable way than just check if the history
+        // file has been set (trying to write in STDIN does not work...)
+        //
+        LineReader lr = (LineReader)PrivateAccess.getInstanceValue(cli, "lineReader");
+        then(lr.getVariable(LineReader.HISTORY_FILE)).isEqualTo(HISTORY);
+    }
+        
     // --------------------------------------------------------- private methods
     
     private void thenSTDOUTContains(String s) throws InterruptedException {

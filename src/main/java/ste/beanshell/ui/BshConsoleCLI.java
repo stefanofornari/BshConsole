@@ -17,17 +17,17 @@ package ste.beanshell.ui;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
-import org.jline.reader.impl.completer.StringsCompleter;
-import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -41,6 +41,10 @@ import picocli.CommandLine.ParameterException;
 public class BshConsoleCLI {
         
     public static final String OPT_HELP = "--help";
+    
+    public static final String VAR_HISTORY_FILE = "HISTORY_FILE";
+    
+    private LineReader lineReader = null;
     
     
     public void launch(String... args) throws IOException, EvalError {
@@ -67,13 +71,6 @@ public class BshConsoleCLI {
         Interpreter bsh = new Interpreter(new InputStreamReader(IN), System.out, System.err, true);
         bsh.setExitOnEOF(true);
     
-        Terminal terminal = TerminalBuilder.terminal();
-        LineReader lineReader = LineReaderBuilder.builder()
-                                    .terminal(terminal)
-                                    .completer(new BshCompleter(bsh))
-                                    .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
-                                    .build();
-        
         if (options.initScript != null) {
             try {
                 bsh.source(options.initScript);
@@ -82,6 +79,10 @@ public class BshConsoleCLI {
                 return;
             }
         }
+        
+        buildLineReader(bsh);
+        
+        
         
         Thread bshThread = new Thread(bsh);
         bshThread.start();
@@ -111,6 +112,28 @@ public class BshConsoleCLI {
     
     public static void main(String... args) throws Exception {
         new BshConsoleCLI().launch(args);
+    }
+    
+    // ------------------------------------------------------- protected methods
+    
+    /**
+     * 
+     * @throws IOException 
+     */
+    protected void buildLineReader(Interpreter bsh) throws IOException, EvalError {
+        lineReader = LineReaderBuilder.builder()
+            .terminal(TerminalBuilder.terminal())
+            .completer(new BshCompleter(bsh))
+            .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
+            .build();
+        
+        String historyFile = (String)bsh.get(VAR_HISTORY_FILE);
+        if (historyFile != null) {
+            lineReader.setVariable(
+                LineReader.HISTORY_FILE,
+                new File(historyFile)
+            );
+        }
     }
     
     // -------------------------------------------------------- CommonParameters

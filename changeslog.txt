@@ -1,3 +1,9 @@
+20180527
+--------
+- added persistent history
+- added a demo shell (bshell)
+- released v1.1.0
+
 20180501
 --------
 - added auto-completing
