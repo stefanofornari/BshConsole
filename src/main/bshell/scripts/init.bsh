@@ -1,0 +1,6 @@
+bsh.prompt="[B] ";
+printBanner() {
+  print("Welcome to bshell v${pom.version}");
+}
+
+HISTORY_FILE=System.getProperty("user.home") + "/.bshell.history";

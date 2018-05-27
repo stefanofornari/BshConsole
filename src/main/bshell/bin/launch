@@ -1,0 +1,23 @@
+#!/bin/sh
+
+#
+# Copyright Stefano Fornari (C) 2013. All rights reserved.
+#
+scriptname=$(basename $0)
+scriptdir=$(cd $(dirname $0) && pwd)
+home=$(dirname $scriptdir)
+
+. "$scriptdir/scriptutils"
+
+#
+# If JAVA_HOME points to a jdk, it is taken to launch the client, it the java
+# command in the path is used.
+#
+set_java
+set_classpath "$home/lib"
+
+cd "$home"
+
+LANG=en_US.UTF-8
+
+$javacmd "$@"

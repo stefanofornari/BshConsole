@@ -1,0 +1,37 @@
+#!/bin/sh
+
+#
+# Copyright (C) 2017 Funambol. All rights reserved.
+#
+# This script is meant to be ran by both command line and daemontools. Note that
+# it requires daemontools to be installed (sudo apt-get install daemontools)
+#
+
+scriptname=$(basename $0)
+scriptdir=$(cd $(dirname $0) && pwd)
+home=$(dirname "$scriptdir")
+
+. "$scriptdir/scriptutils"
+
+#
+# If JAVA_HOME points to a jdk, it is taken to launch the client, it the java
+# command in the path is used.
+#
+set_java
+set_classpath "$home/lib"
+
+cd "$home"
+
+#
+# Default configuration (use conf/serverone.conf to customize)
+#
+JAVA_OPTS=""
+#JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=1044"
+
+#
+# Load a custom configuration (if any) overwriting the default values above
+#
+load_config $scriptname
+
+exec 2>&1
+exec $uidcmd $javacmd $JAVA_OPTS ste.beanshell.ui.BshConsoleCLI --init "scripts/init.bsh" $*

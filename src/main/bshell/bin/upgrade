@@ -1,0 +1,64 @@
+#!/bin/sh
+
+#
+# Copyright (C) 2017 Funambol.
+# All Rights Reserved. No use, copying or distribution of this
+# work may be made except in accordance with a valid license
+# agreement from Funambol. This notice must be
+# included on all copies, modifications and derivatives of this
+# work.
+# 
+# Funambol MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY
+# OF THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+# THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+# PURPOSE, OR NON-INFRINGEMENT. Funambol SHALL NOT BE LIABLE FOR ANY DAMAGES
+# SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
+# THIS SOFTWARE OR ITS DERIVATIVES.
+#
+
+# Setting CMD_HOME
+# resolving links - $0 could be a softlink
+PRG="$0"
+
+while [ -h "$PRG" ]; do
+  ls=`ls -ld "$PRG"`
+  link=`expr "$ls" : '.*-> \(.*\)$'`
+  if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+  else
+    PRG=`dirname "$PRG"`/"$link"
+  fi
+done
+
+CURDIR=`pwd`
+PRGDIR=`dirname "$PRG"`
+CMD_HOME=`cd "$PRGDIR/.." ; pwd`
+
+if [ $# -ne 1 ]; then
+    echo "SYNTAX: upgrade <target vedo dir>"
+    echo "  e.g.: upgrade /opt/vedo-1.5"
+    exit 1
+fi
+
+cd $CMD_HOME
+
+echo ""
+echo "upgrading $1..."
+echo ""
+rsync -rtuvz --delete --force --files-from="etc/upgrade_sync.txt" --exclude-from="etc/upgrade_exclude.txt" "$CMD_HOME" $1
+
+echo ""
+echo "final tweaks..."
+echo ""
+if [ -f "$CMD_HOME/etc/tweaks/tweaks.sh" ]
+then
+  . "$CMD_HOME/etc/tweaks/tweaks.sh"
+fi
+echo ""
+echo ""
+echo "done."
+echo ""
+
+echo "-----------------"
+echo "Upgrade completed"
+echo "-----------------"

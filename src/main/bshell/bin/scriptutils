@@ -1,0 +1,40 @@
+#!/bin/sh
+
+#
+# Copyright Stefano Fornari (C) 2013. All rights reserved.
+#
+
+set_java() {
+  #
+  # If JAVA_HOME points to a jdk, it is taken to launch the client, it the java
+  # command in the path is used.
+  #
+  javacmd="bin/java"
+
+  if [ ! -f "$JAVA_HOME/$javacmd" ]
+  then
+      javacmd="java"
+  fi
+
+  if [ -f "$JAVA_HOME/$javacmd" ]
+  then
+      javacmd="$JAVA_HOME"/$javacmd
+  fi
+}
+
+set_classpath() {
+  # Setting classpath
+  export CLASSPATH="$CLASSPATH":"$1"
+  cd "$1"
+  for jarfile in *.jar; do export CLASSPATH="$CLASSPATH":"$1/$jarfile"; done
+}
+
+#
+# loads (if it exists) a configuration file named conf/$1.conf
+#
+load_config() {
+  if [ -f "conf/$1.conf" ]
+  then
+    . "conf/$1.conf"
+  fi
+}
