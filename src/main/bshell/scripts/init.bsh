@@ -1,4 +1,4 @@
-bsh.prompt="[B] ";
+bsh.prompt="\033[38;2;0;167;255mbsh %\033[m ";
 printBanner() {
   print("Welcome to bshell v${pom.version}");
 }
