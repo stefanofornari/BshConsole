@@ -100,8 +100,7 @@ public class BshConsoleCLI {
                 IN.close(); OUT.close();
                 return;
             }
-           
-            OUT.write(line.getBytes());
+            OUT.write((line.isEmpty()?";":line).getBytes());
             OUT.flush();
         }
     }
