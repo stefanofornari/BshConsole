@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -79,11 +78,8 @@ public class BshConsoleCLI {
                 return;
             }
         }
-        
         buildLineReader(bsh);
-        
-        
-        
+       
         Thread bshThread = new Thread(bsh);
         bshThread.start();
         
@@ -135,6 +131,9 @@ public class BshConsoleCLI {
             );
         }
     }
+    
+    // --------------------------------------------------------- private methods
+    
     
     // -------------------------------------------------------- CommonParameters
     

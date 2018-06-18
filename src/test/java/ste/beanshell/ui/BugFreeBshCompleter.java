@@ -100,7 +100,7 @@ public class BugFreeBshCompleter {
         thenBufferIs(reader, "dummy", new TestBuffer("dummy").tab());
         
         BSH.eval("print(s) { System.out.println(s); }");
-        thenBufferIs(reader, "print( ", new TestBuffer("pr").tab());
+        thenBufferIs(reader, "print(", new TestBuffer("pr").tab());
     }
     
     @Test
@@ -111,8 +111,8 @@ public class BugFreeBshCompleter {
         reader.setCompleter(new BshCompleter(BSH));
 
         BSH.set("COMPLETES", "one, two, three");
-        thenBufferIs(reader, "one ", new TestBuffer("o").tab());
-        thenBufferIs(reader, "two ", new TestBuffer("tw").tab());
+        thenBufferIs(reader, "one", new TestBuffer("o").tab());
+        thenBufferIs(reader, "two", new TestBuffer("tw").tab());
         thenBufferIs(reader, "four", new TestBuffer("four").tab());
     }
     

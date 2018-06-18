@@ -51,14 +51,14 @@ public class BshCompleter implements Completer {
             }
             
             for (String v : (String[])bsh.get("this.methods")) {
-                candidates.add(new Candidate(AttributedString.stripAnsi(v) + "(", v, null, null, null, null, true));
+                candidates.add(new Candidate(AttributedString.stripAnsi(v) + "(", v, null, null, null, null, false));
             }
             
             String completes = (String)bsh.get("COMPLETES");
             if (completes != null) {
                 for (String v : completes.split(",")) {
                     v = v.trim();
-                    candidates.add(new Candidate(AttributedString.stripAnsi(v), v, null, null, null, null, true));
+                    candidates.add(new Candidate(AttributedString.stripAnsi(v), v, null, null, null, null, false));
                 }
             }
             
