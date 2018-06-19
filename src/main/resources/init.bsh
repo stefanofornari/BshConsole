@@ -1,7 +1,7 @@
 bsh.prompt = "\u001b[34;1mbsh #\u001b[0m ";
 
 printBanner() {
-  print("\u001b[2JWelcome to bshell v1.1.1-SNAPSHOT\n");
+  print("Welcome to bshell v1.1.1-SNAPSHOT\n");
 }
 
 getBshPrompt() {
