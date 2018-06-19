@@ -114,8 +114,8 @@ public class BshConsoleCLI {
                 IN.close(); OUT.close();
                 return;
             }
-           
-            OUT.write(line.getBytes());
+
+            OUT.write(line.isEmpty()?";".getBytes():line.getBytes());
             OUT.flush();
             //
             // We reinitialize the prompt to the empty string so that on multi-line
