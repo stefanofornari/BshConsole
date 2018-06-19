@@ -1,4 +1,4 @@
- 20180619
+20180619
 --------
 - released v1.2.0 with the following improvements and fixes:
   - bug #4: completion adds an extra space once an exact match is found 
