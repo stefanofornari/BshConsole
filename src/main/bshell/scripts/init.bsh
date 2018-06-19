@@ -1,7 +1,19 @@
-bsh.prompt = "bsh # ";
+//
+// Prompt customization
+// --------------------
+//
+// Uncomment and change the line below to customize the console prompt
+//
+// bsh.prompt = "\u001b[34;1mmyshell#\u001b[0m ";
 
-printBanner() {
-  print("Welcome to bshell v${pom.version}");
-}
-
-HISTORY_FILE=System.getProperty("user.home") + "/.bshell.history";
+//
+//
+// Banner customization
+// --------------------
+//
+// Uncomment and customize the banner displayed at console startup in the lines
+// below. Note the ANSI sequence \u001b[2J clears teh screen.
+//
+// printBanner() {
+//   print("\u001b[2JWelcome to MyShell\n");
+// }
