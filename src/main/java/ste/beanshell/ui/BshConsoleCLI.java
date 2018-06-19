@@ -66,13 +66,13 @@ public class BshConsoleCLI {
             cli.usage(System.out);
             return;
         }
-        
-        final PipedOutputStream OUT = new PipedOutputStream();
-        final PipedInputStream  IN  = new PipedInputStream(OUT);
-        
+
+        PipedOutputStream OUT = new PipedOutputStream();
+        PipedInputStream  IN  = new PipedInputStream(OUT);
+
         Interpreter bsh = new Interpreter(new InputStreamReader(IN), System.out, System.err, true);
-        bsh.setExitOnEOF(true);
-        
+        bsh.setExitOnEOF(false);
+
         //
         // read an internal init script from the resources
         //
@@ -106,9 +106,17 @@ public class BshConsoleCLI {
             try {
                 line = lineReader.readLine();
             } catch (UserInterruptException e) {
-                System.out.println("Good bye!");
                 IN.close(); OUT.close();
-                return;
+                bshThread.interrupt();
+                OUT = new PipedOutputStream();
+                IN  = new PipedInputStream(OUT);
+                bsh = new Interpreter(new InputStreamReader(IN),
+                    System.out, System.err, true,
+                    bsh.getNameSpace(), bsh, bsh.getSourceFileInfo());
+                bsh.setExitOnEOF(false);
+                bshThread = new Thread(bsh);
+                bshThread.start();
+                continue;
             } catch (EndOfFileException e) {
                 System.out.println("Reached end of file... closing.");
                 IN.close(); OUT.close();
