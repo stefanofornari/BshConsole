@@ -1,0 +1,4 @@
+getBshPrompt() {
+  bsh.lineReader.prompt = bsh.prompt;
+  return "";
+}

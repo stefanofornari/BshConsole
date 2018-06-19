@@ -1,0 +1,3 @@
+bsh.prompt = "HELLO";
+print("PROMPT: >" + getBshPrompt() + "<");
+System.out.flush();

@@ -43,6 +43,13 @@ public class BugFreeBshConsoleCLI extends BugFreeCLI {
     }
     
     @Test(timeout = 500)
+    public void read_internal_init_scripts_from_resources() throws Exception {
+        new BshConsoleCLI().launch("--welcome", "--init", "src/test/scripts/init3.bsh");
+        
+        thenSTDOUTContains("PROMPT: ><");
+    }
+    
+    @Test(timeout = 500)
     public void read_init_script() throws Exception {
         new BshConsoleCLI().launch("--welcome", "--init", "src/test/scripts/init1.bsh");
         
@@ -84,6 +91,8 @@ public class BugFreeBshConsoleCLI extends BugFreeCLI {
         LineReader lr = (LineReader)PrivateAccess.getInstanceValue(cli, "lineReader");
         then(lr.getVariable(LineReader.HISTORY_FILE)).isEqualTo(HISTORY);
     }
+    
+    
         
     // --------------------------------------------------------- private methods
     
@@ -94,7 +103,7 @@ public class BugFreeBshConsoleCLI extends BugFreeCLI {
         int i = 0;
         while(true) {
             System.out.println(">> " + STDOUT.getLog());
-            if (STDOUT.getLog().contains(s) || (++i < 20)) {
+            if (STDOUT.getLog().contains(s) || (++i > 20)) {
                 break;
             }
             Thread.sleep(50);

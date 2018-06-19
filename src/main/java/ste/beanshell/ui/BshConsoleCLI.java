@@ -27,6 +27,7 @@ import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.TerminalBuilder;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -43,7 +44,7 @@ public class BshConsoleCLI {
     
     public static final String VAR_HISTORY_FILE = "HISTORY_FILE";
     
-    private LineReader lineReader = null;
+    private LineReaderImpl lineReader = null;
     
     
     public void launch(String... args) throws IOException, EvalError {
@@ -69,7 +70,15 @@ public class BshConsoleCLI {
         
         Interpreter bsh = new Interpreter(new InputStreamReader(IN), System.out, System.err, true);
         bsh.setExitOnEOF(true);
+        
+        //
+        // read an internal init script from the resources
+        //
+        bsh.eval(new InputStreamReader(getClass().getResourceAsStream("/init.bsh")));
     
+        //
+        // if provided, read a customization init script
+        //
         if (options.initScript != null) {
             try {
                 bsh.source(options.initScript);
@@ -79,10 +88,17 @@ public class BshConsoleCLI {
             }
         }
         buildLineReader(bsh);
+        
+        //
+        // provide the scripts a way to access jline lineReader; we will use
+        // bsh.Interpreter callback to getBshPrompt to set the correct promopt
+        //
+        bsh.set("bsh.lineReader", lineReader);
        
         Thread bshThread = new Thread(bsh);
         bshThread.start();
         
+        String prompt = (String)bsh.get("bsh.prompt");
         while (!options.welcomeOnly) {
             String line = null;
             try {
@@ -99,6 +115,12 @@ public class BshConsoleCLI {
            
             OUT.write(line.getBytes());
             OUT.flush();
+            //
+            // We reinitialize the prompt to the empty string so that on multi-line
+            // inputs no prompt will be displayed. Only when bsh.Interpreter will
+            // call getBshPrompt(), the prompt for a new statement will be set.
+            //
+            lineReader.setPrompt("");
         }
     }
     
@@ -117,7 +139,7 @@ public class BshConsoleCLI {
      * @throws IOException 
      */
     protected void buildLineReader(Interpreter bsh) throws IOException, EvalError {
-        lineReader = LineReaderBuilder.builder()
+        lineReader = (LineReaderImpl)LineReaderBuilder.builder()
             .terminal(TerminalBuilder.terminal())
             .completer(new BshCompleter(bsh))
             .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
