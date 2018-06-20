@@ -106,6 +106,7 @@ public class BshConsoleCLI {
             try {
                 line = lineReader.readLine();
             } catch (UserInterruptException e) {
+                bsh.println("^C");
                 IN.close(); OUT.close();
                 bshThread.interrupt();
                 OUT = new PipedOutputStream();
