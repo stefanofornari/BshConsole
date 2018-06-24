@@ -13,8 +13,9 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package ste.beanshell.ui;
+package ste.beanshell;
 
+import ste.beanshell.BshCompleter;
 import bsh.Interpreter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
