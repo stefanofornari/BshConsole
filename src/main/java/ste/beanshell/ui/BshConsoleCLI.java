@@ -28,7 +28,9 @@ import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.LineReaderImpl;
+import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.InfoCmp.Capability;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -64,13 +66,13 @@ public class BshConsoleCLI {
             cli.usage(System.out);
             return;
         }
-        
-        final PipedOutputStream OUT = new PipedOutputStream();
-        final PipedInputStream  IN  = new PipedInputStream(OUT);
-        
+
+        PipedOutputStream OUT = new PipedOutputStream();
+        PipedInputStream  IN  = new PipedInputStream(OUT);
+
         Interpreter bsh = new Interpreter(new InputStreamReader(IN), System.out, System.err, true);
-        bsh.setExitOnEOF(true);
-        
+        bsh.setExitOnEOF(false);
+
         //
         // read an internal init script from the resources
         //
@@ -104,16 +106,25 @@ public class BshConsoleCLI {
             try {
                 line = lineReader.readLine();
             } catch (UserInterruptException e) {
-                System.out.println("Good bye!");
+                bsh.println("^C");
                 IN.close(); OUT.close();
-                return;
+                bshThread.interrupt();
+                OUT = new PipedOutputStream();
+                IN  = new PipedInputStream(OUT);
+                bsh = new Interpreter(new InputStreamReader(IN),
+                    System.out, System.err, true,
+                    bsh.getNameSpace(), bsh, bsh.getSourceFileInfo());
+                bsh.setExitOnEOF(false);
+                bshThread = new Thread(bsh);
+                bshThread.start();
+                continue;
             } catch (EndOfFileException e) {
                 System.out.println("Reached end of file... closing.");
                 IN.close(); OUT.close();
                 return;
             }
-           
-            OUT.write(line.getBytes());
+
+            OUT.write(line.isEmpty()?";".getBytes():line.getBytes());
             OUT.flush();
             //
             // We reinitialize the prompt to the empty string so that on multi-line
@@ -139,8 +150,13 @@ public class BshConsoleCLI {
      * @throws IOException 
      */
     protected void buildLineReader(Interpreter bsh) throws IOException, EvalError {
-        lineReader = (LineReaderImpl)LineReaderBuilder.builder()
-            .terminal(TerminalBuilder.terminal())
+        Terminal terminal = TerminalBuilder.terminal();
+
+        terminal.puts(Capability.clear_screen);
+        terminal.flush();
+
+        lineReader = (LineReaderImpl) LineReaderBuilder.builder()
+            .terminal(terminal)
             .completer(new BshCompleter(bsh))
             .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
             .build();
