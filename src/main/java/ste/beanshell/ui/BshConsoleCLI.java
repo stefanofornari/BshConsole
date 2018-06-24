@@ -15,14 +15,15 @@
  */
 package ste.beanshell.ui;
 
+import ste.beanshell.BshCompleter;
 import bsh.EvalError;
 import bsh.Interpreter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
+import java.io.PipedReader;
+import java.io.PipedWriter;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -39,19 +40,19 @@ import picocli.CommandLine.ParameterException;
  * @author ste
  */
 public class BshConsoleCLI {
-        
+
     public static final String OPT_HELP = "--help";
-    
+
     public static final String VAR_HISTORY_FILE = "HISTORY_FILE";
-    
+
     private LineReaderImpl lineReader = null;
-    
-    
+
+
     public void launch(String... args) throws IOException, EvalError {
         BshConsoleCLI.BshConsoleOptions options = new BshConsoleCLI.BshConsoleOptions();
-        
+
         CommandLine cli = new CommandLine(options);
-            
+
         try {
             cli.parse(args);
         } catch (ParameterException x) {
@@ -59,23 +60,21 @@ public class BshConsoleCLI {
             cli.usage(System.out);
             return;
         }
-        
+
         if (options.help) {
             cli.usage(System.out);
             return;
         }
-        
-        final PipedOutputStream OUT = new PipedOutputStream();
-        final PipedInputStream  IN  = new PipedInputStream(OUT);
-        
-        Interpreter bsh = new Interpreter(new InputStreamReader(IN), System.out, System.err, true);
-        bsh.setExitOnEOF(true);
-        
+
+        PipedWriter pipe = new PipedWriter();
+        PipedInterpreter bsh = new PipedInterpreter(pipe);
+        bsh.setExitOnEOF(false);
+
         //
         // read an internal init script from the resources
         //
         bsh.eval(new InputStreamReader(getClass().getResourceAsStream("/init.bsh")));
-    
+
         //
         // if provided, read a customization init script
         //
@@ -88,55 +87,50 @@ public class BshConsoleCLI {
             }
         }
         buildLineReader(bsh);
-        
+
         //
         // provide the scripts a way to access jline lineReader; we will use
         // bsh.Interpreter callback to getBshPrompt to set the correct promopt
         //
         bsh.set("bsh.lineReader", lineReader);
-       
+
         Thread bshThread = new Thread(bsh);
         bshThread.start();
-        
-        String prompt = (String)bsh.get("bsh.prompt");
+
         while (!options.welcomeOnly) {
             String line = null;
             try {
                 line = lineReader.readLine();
+                pipe.write(line.isEmpty() ? ";" : line); pipe.flush();
+                //
+                // We reinitialize the prompt to the empty string so that on multi-line
+                // inputs no prompt will be displayed. Only when bsh.Interpreter will
+                // call getBshPrompt(), the prompt for a new statement will be set.
+                //
+                lineReader.setPrompt("");
             } catch (UserInterruptException e) {
-                System.out.println("Good bye!");
-                IN.close(); OUT.close();
-                return;
+                pipe = bsh.reset();
             } catch (EndOfFileException e) {
+                pipe.close();
                 System.out.println("Reached end of file... closing.");
-                IN.close(); OUT.close();
                 return;
             }
-           
-            OUT.write(line.getBytes());
-            OUT.flush();
-            //
-            // We reinitialize the prompt to the empty string so that on multi-line
-            // inputs no prompt will be displayed. Only when bsh.Interpreter will
-            // call getBshPrompt(), the prompt for a new statement will be set.
-            //
-            lineReader.setPrompt("");
         }
     }
-    
+
     public void syntax() {
         System.out.println("Usage: " + getClass().getName());
     }
-    
+
     public static void main(String... args) throws Exception {
         new BshConsoleCLI().launch(args);
     }
-    
+
     // ------------------------------------------------------- protected methods
-    
+
     /**
-     * 
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     protected void buildLineReader(Interpreter bsh) throws IOException, EvalError {
         lineReader = (LineReaderImpl)LineReaderBuilder.builder()
@@ -144,7 +138,7 @@ public class BshConsoleCLI {
             .completer(new BshCompleter(bsh))
             .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
             .build();
-        
+
         String historyFile = (String)bsh.get(VAR_HISTORY_FILE);
         if (historyFile != null) {
             lineReader.setVariable(
@@ -153,34 +147,63 @@ public class BshConsoleCLI {
             );
         }
     }
-    
+
     // --------------------------------------------------------- private methods
-    
-    
+
+    // --------------------------------------------------------- PipedInterpeter
+
+    private static class PipedInterpreter extends Interpreter {
+
+        private PipedWriter pipe;
+
+        public PipedInterpreter(PipedWriter pipe) throws IOException {
+            super(
+                new PipedReader(pipe),
+                System.out,
+                System.err,
+                true
+            );
+            this.pipe = pipe;
+            setShowResults(false);
+        }
+
+        public PipedWriter reset() throws IOException {
+            println("(...)");
+
+            pipe.close();
+            pipe = new PipedWriter();
+
+            resetParser(new PipedReader(pipe));
+
+            return pipe;
+        }
+    }
+
+
     // -------------------------------------------------------- CommonParameters
-    
+
     @Command(
-        name = "ste.beanshell.ui.BshConsoleCLI", 
+        name = "ste.beanshell.ui.BshConsoleCLI",
         description = "A modern console for BeanShell"
     )
     protected static class BshConsoleOptions {
         @Option(
-            names = "--help, -h, help", 
+            names = "--help, -h, help",
             description = "This help message"
         )
         public boolean help;
-        
+
         @Option(
-            names="--init", 
+            names="--init",
             description = "An initialization script sourced at startup"
         )
         public String initScript;
-        
+
         @Option(
-            names="--welcome", 
+            names="--welcome",
             description = "Execute the init script if provided and exit"
         )
         public boolean welcomeOnly;
     }
-    
+
 }
