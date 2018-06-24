@@ -15,7 +15,6 @@
  */
 package ste.beanshell.ui;
 
-import ste.beanshell.BshCompleter;
 import bsh.EvalError;
 import bsh.Interpreter;
 import java.io.File;
@@ -29,15 +28,18 @@ import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.LineReaderImpl;
+import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.utils.InfoCmp.Capability;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParameterException;
+import ste.beanshell.BshCompleter;
 
 /**
  *
- * @author ste
+
  */
 public class BshConsoleCLI {
 
@@ -133,8 +135,13 @@ public class BshConsoleCLI {
      * @throws IOException
      */
     protected void buildLineReader(Interpreter bsh) throws IOException, EvalError {
-        lineReader = (LineReaderImpl)LineReaderBuilder.builder()
-            .terminal(TerminalBuilder.terminal())
+        Terminal terminal = TerminalBuilder.terminal();
+
+        terminal.puts(Capability.clear_screen);
+        terminal.flush();
+
+        lineReader = (LineReaderImpl) LineReaderBuilder.builder()
+            .terminal(terminal)
             .completer(new BshCompleter(bsh))
             .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)
             .build();
