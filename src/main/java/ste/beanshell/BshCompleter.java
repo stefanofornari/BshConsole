@@ -13,7 +13,7 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package ste.beanshell.ui;
+package ste.beanshell;
 
 import bsh.EvalError;
 import bsh.Interpreter;
