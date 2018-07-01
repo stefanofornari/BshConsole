@@ -1,12 +1,9 @@
-bsh.prompt = "\u001b[34;1mbsh #\u001b[0m ";
-
 printBanner() {
   print("Welcome to bshell ${version}\n");
 }
 
 getBshPrompt() {
-  bsh.lineReader.prompt = bsh.prompt;
-  return "";
+  return "\u001b[34;1mbsh #\u001b[0m ";
 }
 
 HISTORY_FILE=System.getProperty("user.home") + "/.bshell.history";

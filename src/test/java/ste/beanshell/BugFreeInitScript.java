@@ -24,38 +24,26 @@ import org.junit.Test;
  *
  */
 public class BugFreeInitScript {
-    
+
     @Test
     public void getBshPrompt_returns_empty_string() throws Exception {
         Interpreter bsh = givenInterpreterWithInitScript();
-        
-        bsh.eval("bsh.prompt=\"HELLO\"; p = getBshPrompt();");
-        then((String)bsh.get("p")).isEqualTo("");
-        bsh.eval("bsh.prompt=\"HELLO2\"; p = getBshPrompt();");
-        then((String)bsh.get("p")).isEqualTo("");
+
+        bsh.eval("p = getBshPrompt();");
+        then((String)bsh.get("p")).isEqualTo("\u001b[34;1mbsh #\u001b[0m ");
+        bsh.eval("getBshPrompt() { return \"HELLO2\"; }; p = getBshPrompt();");
+        then((String)bsh.get("p")).isEqualTo("HELLO2");
     }
-    
-    @Test
-    public void getBshPrompt_assigns_line_reader_prompt() throws Exception {
-        Interpreter bsh = givenInterpreterWithInitScript();
-        
-        bsh.eval("bsh.prompt=\"HELLO\"; p = getBshPrompt();");
-        then((String)bsh.get("bsh.lineReader.prompt")).isEqualTo("HELLO");
-        
-        bsh.eval("bsh.prompt=\"HELLO2\"; p = getBshPrompt();");
-        then((String)bsh.get("bsh.lineReader.prompt")).isEqualTo("HELLO2");
-    }
-    
-    
+
     // --------------------------------------------------------- private methods
-    
+
     private Interpreter givenInterpreterWithInitScript() throws Exception {
         Interpreter bsh = new Interpreter();
-        
+
         bsh.eval(new InputStreamReader(getClass().getResourceAsStream("/init.bsh")));
-        
+
         return bsh;
     }
 
-    
+
 }
