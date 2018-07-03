@@ -15,7 +15,6 @@
  */
 package ste.beanshell;
 
-import bsh.Interpreter;
 import java.io.InputStreamReader;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
@@ -27,7 +26,7 @@ public class BugFreeInitScript {
 
     @Test
     public void getBshPrompt_returns_empty_string() throws Exception {
-        Interpreter bsh = givenInterpreterWithInitScript();
+        BshConsoleInterpreter bsh = givenInterpreterWithInitScript();
 
         bsh.eval("p = getBshPrompt();");
         then((String)bsh.get("p")).isEqualTo("\u001b[34;1mbsh #\u001b[0m ");
@@ -37,8 +36,8 @@ public class BugFreeInitScript {
 
     // --------------------------------------------------------- private methods
 
-    private Interpreter givenInterpreterWithInitScript() throws Exception {
-        Interpreter bsh = new Interpreter();
+    private BshConsoleInterpreter givenInterpreterWithInitScript() throws Exception {
+        BshConsoleInterpreter bsh = new BshConsoleInterpreter();
 
         bsh.eval(new InputStreamReader(getClass().getResourceAsStream("/init.bsh")));
 

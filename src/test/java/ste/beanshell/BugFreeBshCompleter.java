@@ -15,8 +15,6 @@
  */
 package ste.beanshell;
 
-import ste.beanshell.BshCompleter;
-import bsh.Interpreter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -61,7 +59,7 @@ import org.junit.Test;
  * @author ste
  */
 public class BugFreeBshCompleter {
-    
+
     @Before
     public void before() throws Exception {
         Handler ch = new ConsoleHandler();
@@ -72,15 +70,15 @@ public class BugFreeBshCompleter {
         logger.setLevel(Level.INFO);
 
     }
-    
+
     @Test
     public void construction() throws Exception {
-        final Interpreter BSH = new Interpreter();
+        final BshConsoleInterpreter BSH = new BshConsoleInterpreter();
         then(new BshCompleter(BSH)).isInstanceOf(Completer.class);
-        
+
         BshCompleter c = new BshCompleter(BSH);
         then(c).hasFieldOrPropertyWithValue("bsh", BSH);
-        
+
         try {
             new BshCompleter(null);
             fail("missing argument validation");
@@ -88,27 +86,28 @@ public class BugFreeBshCompleter {
             then(x).hasMessage("bsh can not be null");
         }
     }
-    
+
     @Test
     public void the_bsh_list() throws Exception {
-        final Interpreter BSH = new Interpreter();
+        final BshConsoleInterpreter BSH = new BshConsoleInterpreter();
+
         TestLineReader reader = givenReader();
-        
+
         reader.setCompleter(new BshCompleter(BSH));
 
-        thenBufferIs(reader, "bsh ", new TestBuffer("").tab());
+        thenBufferIs(reader, "bsh", new TestBuffer("").tab().tab());
         thenBufferIs(reader, "bsh ", new TestBuffer("b").tab());
         thenBufferIs(reader, "dummy", new TestBuffer("dummy").tab());
-        
+
         BSH.eval("print(s) { System.out.println(s); }");
-        thenBufferIs(reader, "print(", new TestBuffer("pr").tab());
+        thenBufferIs(reader, "print", new TestBuffer("pr").tab());
     }
-    
+
     @Test
     public void the_custom_list() throws Exception {
-        final Interpreter BSH = new Interpreter();
+        final BshConsoleInterpreter BSH = new BshConsoleInterpreter();
         TestLineReader reader = givenReader();
-        
+
         reader.setCompleter(new BshCompleter(BSH));
 
         BSH.set("COMPLETES", "one, two, three");
@@ -116,9 +115,9 @@ public class BugFreeBshCompleter {
         thenBufferIs(reader, "two", new TestBuffer("tw").tab());
         thenBufferIs(reader, "four", new TestBuffer("four").tab());
     }
-    
+
     // --------------------------------------------------------- private methods
-    
+
     private TestLineReader givenReader() throws Exception {
         EofPipedInputStream in = new EofPipedInputStream();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -126,12 +125,12 @@ public class BugFreeBshCompleter {
         terminal.setSize(new Size(160, 80));
         TestLineReader reader = new TestLineReader(terminal, "JLine", null, in);
         reader.setKeyMap(LineReaderImpl.EMACS);
-        
-        
+
+
         return reader;
     }
-    
-    protected void thenBufferIs(final TestLineReader reader, final String expected, final TestBuffer buffer) throws IOException {
+
+    private void thenBufferIs(final TestLineReader reader, final String expected, final TestBuffer buffer) throws IOException {
         reader.getHistory().purge();
 
         reader.list = false;
@@ -147,7 +146,7 @@ public class BugFreeBshCompleter {
         then(reader.getBuffer().toString()).isEqualTo(expected);
     }
 
-    
+
     private String getKeyForAction(final String key) {
         switch (key) {
             case BACKWARD_WORD:        return "\u001Bb";
@@ -168,14 +167,14 @@ public class BugFreeBshCompleter {
               throw new IllegalArgumentException(key);
         }
     }
-    
+
     // ---------------------------------------------------------- TestLineReader
-    
+
     public static class TestLineReader extends LineReaderImpl {
         boolean list = false;
         boolean menu = false;
         EofPipedInputStream in;
-        
+
         public TestLineReader(Terminal terminal, String appName, Map<String, Object> variables, EofPipedInputStream in) {
             super(terminal, appName, variables);
             this.in = in;
@@ -192,9 +191,9 @@ public class BugFreeBshCompleter {
             return super.doMenu(possible, completed, escaper);
         }
     }
-    
+
     // ----------------------------------------------------- EofPipedInputStream
-    
+
     public static class EofPipedInputStream extends InputStream {
 
         private InputStream in;
@@ -217,9 +216,9 @@ public class BugFreeBshCompleter {
             return in != null ? in.available() : 0;
         }
     }
-    
+
     // -------------------------------------------------------------- TestBuffer
-    
+
     protected class TestBuffer {
         private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 

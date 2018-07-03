@@ -29,11 +29,11 @@ import org.jline.utils.AttributedString;
  * @author ste
  */
 public class BshCompleter implements Completer {
-    
+
     private final Interpreter bsh;
-    
+
     /**
-     * 
+     *
      * @param bsh the beanshell interpreter - NOT NULL
      */
     public BshCompleter(Interpreter bsh) {
@@ -49,11 +49,11 @@ public class BshCompleter implements Completer {
             for (String v : (String[])bsh.get("this.variables")) {
                 candidates.add(new Candidate(AttributedString.stripAnsi(v), v, null, null, null, null, true));
             }
-            
+
             for (String v : (String[])bsh.get("this.methods")) {
                 candidates.add(new Candidate(AttributedString.stripAnsi(v) + "(", v, null, null, null, null, false));
             }
-            
+
             String completes = (String)bsh.get("COMPLETES");
             if (completes != null) {
                 for (String v : completes.split(",")) {
@@ -61,12 +61,12 @@ public class BshCompleter implements Completer {
                     candidates.add(new Candidate(AttributedString.stripAnsi(v), v, null, null, null, null, false));
                 }
             }
-            
+
         } catch (EvalError x) {
             //
             // it should not happen...
             //
         }
     }
-    
+
 }

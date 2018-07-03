@@ -17,11 +17,13 @@ package ste.beanshell;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+import bsh.Parser;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedReader;
 import java.io.PipedWriter;
+import java.io.Reader;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -50,7 +52,6 @@ public class BshConsoleInterpreter extends Interpreter {
             true
         );
 
-
         PipedReader in = (PipedReader)getIn();
         pipe = new PipedWriter();
         in.connect(pipe);
@@ -70,7 +71,7 @@ public class BshConsoleInterpreter extends Interpreter {
         pipe.close();
         pipe = new PipedWriter();
 
-        //resetParser(new PipedReader(pipe));
+        resetParser(new PipedReader(pipe));
 
         return pipe;
     }
@@ -90,6 +91,7 @@ public class BshConsoleInterpreter extends Interpreter {
 
         Thread bshThread = new Thread(this);
         bshThread.start();
+
 
         // Initial prompt
         // --------------
@@ -185,5 +187,19 @@ public class BshConsoleInterpreter extends Interpreter {
                 new File(historyFile)
             );
         }
+    }
+
+    /**
+     * Resets the parser closing the current input stream and creating a new
+     * parser.
+     */
+    private void resetParser(Reader in) {
+        try {
+            this.in.close();
+        } catch (IOException x) {
+            // nothing to do...
+        }
+        this.in = in;
+        parser = new Parser(in);
     }
 }
