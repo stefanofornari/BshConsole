@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ste.beanshell;
+package bsh;
 
+import bsh.BshConsoleInterpreter;
 import java.io.File;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.reader.LineReader;
@@ -45,7 +46,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         bsh.set("HISTORY_FILE", HISTORY.getAbsolutePath());
         PrivateAccess.setInstanceValue(bsh, "interactive", false);
 
-        bsh.start();
+        bsh.startConsole();
 
         //
         // I could not find a more reliable way...
@@ -62,7 +63,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                bsh.start();
+                bsh.startConsole();
             }
         }).start();
 
@@ -87,7 +88,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                bsh.start();
+                bsh.startConsole();
             }
         }).start();
 

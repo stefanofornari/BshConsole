@@ -15,6 +15,7 @@
  */
 package ste.beanshell;
 
+import bsh.BshConsoleInterpreter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

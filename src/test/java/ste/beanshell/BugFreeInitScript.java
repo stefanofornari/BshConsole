@@ -15,6 +15,7 @@
  */
 package ste.beanshell;
 
+import bsh.BshConsoleInterpreter;
 import java.io.InputStreamReader;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
