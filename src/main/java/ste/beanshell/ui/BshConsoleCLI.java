@@ -22,7 +22,7 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParameterException;
-import ste.beanshell.BshConsoleInterpreter;
+import bsh.BshConsoleInterpreter;
 
 /**
  *
@@ -71,7 +71,7 @@ public class BshConsoleCLI {
         }
 
 
-        bsh.start();
+        bsh.startConsole();
 
     }
 
