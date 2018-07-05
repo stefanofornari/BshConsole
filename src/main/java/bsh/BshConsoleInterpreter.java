@@ -157,22 +157,15 @@ public class BshConsoleInterpreter extends Interpreter {
         CallStack callstack = new CallStack(globalNameSpace);
 
         SimpleNode node = null;
+        int idx = -1;
         while (!Thread.interrupted()) {
             boolean eof = false;
             try {
-                // try to sync up the console
-                System.out.flush();
-                System.err.flush();
-                Thread.yield();  // this helps a little
-
                 prompt(getBshPrompt());
 
                 eof = parser.Line();
                 if (!eof && (parser.jjtree.nodeArity() > 0)) // number of child nodes
                 {
-                    if (node != null) {
-                        node.lastToken.next = null;  // prevent OutOfMemoryError
-                    }
                     node = (SimpleNode) (parser.jjtree.rootNode());
 
                     if (DEBUG) {
@@ -180,8 +173,6 @@ public class BshConsoleInterpreter extends Interpreter {
                     }
 
                     Object ret = node.eval(callstack, this);
-
-                    node.lastToken.next = null;  // prevent OutOfMemoryError
 
                     // sanity check during development
                     if (callstack.depth() > 1) {
@@ -192,9 +183,21 @@ public class BshConsoleInterpreter extends Interpreter {
                     if (ret instanceof ReturnControl) {
                         ret = ((ReturnControl) ret).value;
                     }
+                    
+                    if( ret != Primitive.VOID )
+                    {
+                        setu("$_", ret);
+                        setu("$"+(++idx%10), ret);
+                        if ( getShowResults() ) {
+                            println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                        }
+                    } else if ( getShowResults() ) {
+                        println("--> void");
+                    }
 
                     if (ret != Primitive.VOID) {
                         setu("$_", ret);
+                        setu("$"+(++idx%10), ret);
                     }
                     if (getShowResults()) {
                         println("--> " + ret + " : " + StringUtil.typeString(ret));
@@ -212,13 +215,13 @@ public class BshConsoleInterpreter extends Interpreter {
             } catch (InterpreterError e) {
                 error("Internal Error: " + e.getMessage());
             } catch (TargetError e) {
-                error("// Uncaught Exception: " + e);
+                error("Target Exception: " + e.getMessage() );
                 if (e.inNativeCode()) {
                     e.printStackTrace(DEBUG, err);
                 }
                 setu("$_e", e.getTarget());
             } catch (EvalError e) {
-                error("EvalError: " + e.getMessage());
+                error( "Evaluation Error: "+e.getMessage() );
 
                 if (DEBUG) {
                     e.printStackTrace();
