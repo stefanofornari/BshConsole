@@ -14,7 +14,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
-    <description> A BeanShell console with history, vars/commands completion and more... </description>
+    <description>A BeanShell console with history, vars/commands completion and more...</description>
     <dependencies>
         <dependency>
             <groupId>org.jline</groupId>
