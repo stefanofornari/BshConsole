@@ -17,6 +17,7 @@ package bsh;
 
 import static bsh.Interpreter.DEBUG;
 import static bsh.Interpreter.VERSION;
+import bsh.classpath.BshClassPath;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -42,6 +43,28 @@ public class BshConsoleInterpreter extends Interpreter {
 
     protected LineReaderImpl lineReader = null;
     protected String prompt;
+
+    static {
+        BshClassPath.addMappingFeedback(
+            new BshClassPath.MappingFeedback() {
+                @Override
+                public void startClassMapping() {
+                }
+
+                @Override
+                public void classMapping(String msg) {
+                }
+
+                @Override
+                public void errorWhileMapping(String msg) {
+                }
+
+                @Override
+                public void endClassMapping() {
+                }
+            }
+        );
+    }
 
     public BshConsoleInterpreter() throws IOException, EvalError {
         super(

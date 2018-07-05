@@ -5,7 +5,6 @@
  */
 package bsh;
 
-import bsh.BshConsoleInterpreter;
 import java.io.File;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.reader.LineReader;

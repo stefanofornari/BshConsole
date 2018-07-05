@@ -91,30 +91,18 @@ public class BugFreeBshCompleter {
     @Test
     public void the_bsh_list() throws Exception {
         final BshConsoleInterpreter BSH = new BshConsoleInterpreter();
+        
+        BSH.set("myvar", "");
+        BSH.eval("myfunc(s){}");
 
         TestLineReader reader = givenReader();
 
         reader.setCompleter(new BshCompleter(BSH));
 
-        thenBufferIs(reader, "bsh", new TestBuffer("").tab().tab());
-        thenBufferIs(reader, "bsh ", new TestBuffer("b").tab());
+        thenBufferIs(reader, "System.equals", new TestBuffer("System.eq").tab());
         thenBufferIs(reader, "dummy", new TestBuffer("dummy").tab());
-
-        BSH.eval("print(s) { System.out.println(s); }");
-        thenBufferIs(reader, "print", new TestBuffer("pr").tab());
-    }
-
-    @Test
-    public void the_custom_list() throws Exception {
-        final BshConsoleInterpreter BSH = new BshConsoleInterpreter();
-        TestLineReader reader = givenReader();
-
-        reader.setCompleter(new BshCompleter(BSH));
-
-        BSH.set("COMPLETES", "one, two, three");
-        thenBufferIs(reader, "one", new TestBuffer("o").tab());
-        thenBufferIs(reader, "two", new TestBuffer("tw").tab());
-        thenBufferIs(reader, "four", new TestBuffer("four").tab());
+        thenBufferIs(reader, "myvar", new TestBuffer("myv").tab());
+        thenBufferIs(reader, "myfunc", new TestBuffer("myf").tab());
     }
 
     // --------------------------------------------------------- private methods
