@@ -17,10 +17,10 @@ package ste.beanshell;
 
 import bsh.ClassIdentifier;
 import bsh.ClassPathException;
-import bsh.Interpreter;
 import bsh.Primitive;
 import bsh.UtilEvalError;
 import bsh.classpath.ClassManagerImpl;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ import org.jline.utils.AttributedString;
  */
 public class BshCompleter implements Completer {
 
-    private final Interpreter bsh;
+    private static final BshSession sess = BshSession.init();
     private final JlineNameCompletionTable names = new JlineNameCompletionTable();
     private final Map<String, String[]> memberCache = new WeakHashMap<>();
 
@@ -47,15 +47,11 @@ public class BshCompleter implements Completer {
      *
      * @param bsh the beanshell interpreter - NOT NULL
      */
-    public BshCompleter(Interpreter bsh) {
-        if (bsh == null) {
-            throw new IllegalArgumentException("bsh can not be null");
-        }
-        this.bsh = bsh;
-        names.add(bsh.getNameSpace());
-        if (bsh.getNameSpace().getClassManager() instanceof ClassManagerImpl) {
+    public BshCompleter() {
+        names.add(sess.bsh.getNameSpace());
+        if (sess.bsh.getNameSpace().getClassManager() instanceof ClassManagerImpl) {
             try {
-                names.add(((ClassManagerImpl) bsh.getNameSpace().getClassManager()).getClassPath());
+                names.add(((ClassManagerImpl) sess.bsh.getNameSpace().getClassManager()).getClassPath());
             } catch (ClassPathException e) { /* ignore */ }
         }
     }
@@ -65,7 +61,7 @@ public class BshCompleter implements Completer {
             return memberCache.get(name);
         }
         try {
-            Object obj = Primitive.unwrap(bsh.getNameSpace().get(name, bsh));
+            Object obj = Primitive.unwrap(sess.bsh.getNameSpace().get(name, sess.bsh));
             if (null != obj) {
                 Class<?> cls = (obj instanceof Class) ? (Class<?>) obj
                         : (obj instanceof ClassIdentifier)
