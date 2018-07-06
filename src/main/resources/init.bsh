@@ -2,8 +2,4 @@ printBanner() {
   print("Welcome to bshell ${version}\n");
 }
 
-getBshPrompt() {
-  return "\u001b[34;1mbsh #\u001b[0m ";
-}
-
 HISTORY_FILE=System.getProperty("user.home") + "/.bshell.history";
