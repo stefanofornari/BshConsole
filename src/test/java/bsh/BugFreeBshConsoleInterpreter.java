@@ -6,9 +6,12 @@
 package bsh;
 
 import java.io.File;
+import java.io.PipedWriter;
+import java.lang.reflect.Method;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.reader.LineReader;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -101,7 +104,35 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         System.out.println();
     }
 
+    @Test
+    @Ignore
+    public void discard_parsed_input_on_invalid() throws Exception {
+        BshConsoleInterpreter bsh = new BshConsoleInterpreter();
+        bsh.eval("getBshPrompt() { return \"abc> \"; };");
 
+        new Thread(bsh).start();
+        Thread.sleep(500);
+
+        PipedWriter pipe = (PipedWriter)PrivateAccess.getInstanceValue(bsh, "pipe");
+
+        pipe.write("class A {\n"); pipe.flush();
+
+        Method m = bsh.getClass().getDeclaredMethod("reset");
+        m.setAccessible(true);
+        m.invoke(bsh);
+
+        pipe = (PipedWriter)PrivateAccess.getInstanceValue(bsh, "pipe");
+        pipe.write("print(\"__done__\");"); pipe.flush();
+
+        new WaitFor(1000, new Condition() {
+            @Override
+            public boolean check() {
+                return STDOUT.getLog().contains("__done__");
+            }
+        });
+
+        then(STDERR.getLog()).doesNotContain("Parser Error");
+    }
 
     // --------------------------------------------------------- private methods
 

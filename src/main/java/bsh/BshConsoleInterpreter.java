@@ -15,7 +15,6 @@
  */
 package bsh;
 
-import static bsh.Interpreter.DEBUG;
 import static bsh.Interpreter.VERSION;
 import bsh.classpath.BshClassPath;
 import java.io.File;
@@ -39,10 +38,13 @@ import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
  */
 public class BshConsoleInterpreter extends Interpreter {
 
+    public boolean DEBUG = false;  // workaround for broken beanshel trunk
+
     private PipedWriter pipe = new PipedWriter();
 
     protected LineReaderImpl lineReader = null;
     protected String prompt;
+    protected boolean discard = false;
 
     static {
         BshClassPath.addMappingFeedback(
@@ -187,7 +189,7 @@ public class BshConsoleInterpreter extends Interpreter {
                 prompt(getBshPrompt());
 
                 eof = parser.Line();
-                if (!eof && (parser.jjtree.nodeArity() > 0)) // number of child nodes
+                if (!discard && (parser.jjtree.nodeArity() > 0)) // number of child nodes
                 {
                     node = (SimpleNode) (parser.jjtree.rootNode());
 
@@ -206,7 +208,7 @@ public class BshConsoleInterpreter extends Interpreter {
                     if (ret instanceof ReturnControl) {
                         ret = ((ReturnControl) ret).value;
                     }
-                    
+
                     if( ret != Primitive.VOID )
                     {
                         setu("$_", ret);
@@ -227,13 +229,12 @@ public class BshConsoleInterpreter extends Interpreter {
                     }
                 }
             } catch (ParseException e) {
-                if (!eof) {
-                    error("Parser Error: " + e.getMessage(DEBUG));
+                if (!discard) {
+                    error("Parser Error: " + e.getMessage(DEBUG) + " " + parser.jjtree.nodeArity());
                 }
                 if (DEBUG) {
                     e.printStackTrace();
                 }
-
                 parser.reInitInput(in);
             } catch (InterpreterError e) {
                 error("Internal Error: " + e.getMessage());
@@ -265,6 +266,7 @@ public class BshConsoleInterpreter extends Interpreter {
                     callstack.clear();
                     callstack.push(globalNameSpace);
                 }
+                discard = false;
             }
         }
     }
@@ -273,7 +275,9 @@ public class BshConsoleInterpreter extends Interpreter {
     // --------------------------------------------------------- private methods
 
     private void prompt(String prompt) {
-        lineReader.setPrompt(this.prompt = prompt);
+        if (lineReader != null) {
+            lineReader.setPrompt(this.prompt = prompt);
+        }
 
         //
         // See "Initial prompt"
@@ -320,6 +324,7 @@ public class BshConsoleInterpreter extends Interpreter {
             this.in = new PipedReader(newPipe);
             parser = new Parser(in);
             pipe = newPipe;
+            discard = true;
             oldPipe.close();
         } catch (IOException x) {
             // nothing to do...
