@@ -53,7 +53,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         //
         // I could not find a more reliable way...
         //
-        LineReader lr = (LineReader)PrivateAccess.getInstanceValue(bsh, "lineReader");
+        LineReader lr = (LineReader)PrivateAccess.getInstanceValue(bsh.jline, "lineReader");
         then(lr.getVariable(LineReader.HISTORY_FILE)).isEqualTo(HISTORY);
     }
 
@@ -72,7 +72,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         new WaitFor(500, new Condition() {
             @Override
             public boolean check() {
-                return "abc> ".equals(bsh.prompt);
+                return (bsh.jline != null) && "abc> ".equals(bsh.jline.prompt);
             }
         });
 
