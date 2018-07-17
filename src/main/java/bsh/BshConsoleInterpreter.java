@@ -143,10 +143,10 @@ public class BshConsoleInterpreter extends Interpreter {
                 } catch (IOException x) {
                     // nop
                 }
-                System.out.println("See you...");
+                jline.println("See you...");
                 return;
             } catch (IOException x) {
-                System.out.println("IO error... closing.");
+                jline.error("IO error... closing.");
                 return;
             }
         }
@@ -177,9 +177,7 @@ public class BshConsoleInterpreter extends Interpreter {
             try {
                 console.prompt(getBshPrompt());
 
-                System.out.println("check1");
                 eof = parser.Line();
-                System.out.println("check2 " + eof);
                 if (!discard && (parser.jjtree.nodeArity() > 0)) // number of child nodes
                 {
                     node = (SimpleNode) (parser.jjtree.rootNode());
@@ -297,11 +295,12 @@ public class BshConsoleInterpreter extends Interpreter {
      * parser.
      */
     private void reset() {
-        println("(...)");
+        jline.println("\n(...)\n");
 
         try {
             PipedWriter oldPipe = jline.pipe;
             jline = new JLineConsoleInterface(jline.lineReader);
+            console.setIn(jline.getIn());
             parser = new Parser(jline.getIn());
             discard = true;
             oldPipe.close();
