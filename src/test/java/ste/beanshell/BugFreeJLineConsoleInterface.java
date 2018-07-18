@@ -70,13 +70,15 @@ public class BugFreeJLineConsoleInterface extends BugFreeCLI {
 
     @Test
     public void prompt() throws Exception {
+        final JLineHelper H = new JLineHelper();
         TestLineReader r = H.givenReader();
+
         JLineConsoleInterface console = new JLineConsoleInterface(r);
 
         console.prompt("abc> ");
-        then(PrivateAccess.getInstanceValue(r, "prompt").toString()).isEqualTo("abc> ");
+        H.thenBufferIs(r, "abc> ", new TestBuffer("abc> "));
 
         console.prompt("cde# ");
-        then(PrivateAccess.getInstanceValue(r, "prompt").toString()).isEqualTo("cde# ");
+        H.thenBufferIs(r, "cde# ", new TestBuffer("cde# "));
     }
 }
