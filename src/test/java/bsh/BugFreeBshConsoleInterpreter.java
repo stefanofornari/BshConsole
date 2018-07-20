@@ -1,17 +1,25 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright (C) 2018 Stefano Fornari.
+ * All Rights Reserved.  No use, copying or distribution of this
+ * work may be made except in accordance with a valid license
+ * agreement from Stefano Fornari.  This notice must be
+ * included on all copies, modifications and derivatives of this
+ * work.
+ *
+ * STEFANO FORNARI MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE SUITABILITY
+ * OF THE SOFTWARE, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE, OR NON-INFRINGEMENT. STEFANO FORNARI SHALL NOT BE LIABLE FOR ANY
+ * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
+ * THIS SOFTWARE OR ITS DERIVATIVES.
  */
 package bsh;
 
 import java.io.File;
-import java.io.PipedWriter;
 import java.lang.reflect.Method;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.reader.LineReader;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -105,24 +113,25 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
     }
 
     @Test
-    @Ignore
     public void discard_parsed_input_on_invalid() throws Exception {
         BshConsoleInterpreter bsh = new BshConsoleInterpreter();
         bsh.eval("getBshPrompt() { return \"abc> \"; };");
 
-        new Thread(bsh).start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                bsh.startConsole();
+            }
+        }).start();
         Thread.sleep(500);
 
-        PipedWriter pipe = (PipedWriter)PrivateAccess.getInstanceValue(bsh, "pipe");
-
-        pipe.write("class A {\n"); pipe.flush();
+        bsh.jline.pipe.write("class A {\n"); bsh.jline.pipe.flush();
 
         Method m = bsh.getClass().getDeclaredMethod("reset");
         m.setAccessible(true);
         m.invoke(bsh);
 
-        pipe = (PipedWriter)PrivateAccess.getInstanceValue(bsh, "pipe");
-        pipe.write("print(\"__done__\");"); pipe.flush();
+        bsh.jline.pipe.write("print(\"__done__\");"); bsh.jline.pipe.flush();
 
         new WaitFor(1000, new Condition() {
             @Override
