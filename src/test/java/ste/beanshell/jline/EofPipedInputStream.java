@@ -10,10 +10,20 @@ package ste.beanshell.jline;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
+import org.apache.commons.io.input.ReaderInputStream;
 
 public class EofPipedInputStream extends InputStream {
 
     private InputStream in;
+
+    public EofPipedInputStream(Reader r) {
+        in = new ReaderInputStream(r);
+    }
+
+    public EofPipedInputStream() {
+        in = null;
+    }
 
     public InputStream getIn() {
         return in;
