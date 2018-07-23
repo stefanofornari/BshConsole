@@ -14,6 +14,7 @@ import java.util.function.BiFunction;
 import org.jline.reader.Candidate;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
+import org.jline.utils.AttributedString;
 
 public class TestLineReader extends LineReaderImpl {
 
@@ -36,5 +37,9 @@ public class TestLineReader extends LineReaderImpl {
     protected boolean doMenu(List<Candidate> possible, String completed, BiFunction<CharSequence, Boolean, CharSequence> escaper) {
         menu = true;
         return super.doMenu(possible, completed, escaper);
+    }
+
+    public AttributedString getPrompt() {
+        return prompt;
     }
 }

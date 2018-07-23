@@ -38,11 +38,10 @@ import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
  */
 public class BshConsoleInterpreter extends Interpreter {
 
-    public boolean DEBUG = false;  // workaround for broken beanshel trunk
+    public boolean DEBUG = true;  // workaround for new bewanshell DEBUG... to be removed
 
-    //protected LineReaderImpl lineReader = null;
-    //protected JLineConsoleInterface console = new JLineConsoleInterface(buildLineReader());
     protected boolean discard = false;
+    protected boolean connected = false;
 
     JLineConsoleInterface jline;
 
@@ -81,17 +80,21 @@ public class BshConsoleInterpreter extends Interpreter {
         eval(new InputStreamReader(getClass().getResourceAsStream("/init.bsh")));
     }
 
-    public void startConsole() {
+    public void consoleInit() {
         try {
             jline = new JLineConsoleInterface(buildLineReader());
             setConsole(jline);
         } catch (Exception x) {
             error("Unable to create the line reader... closing.");
             x.printStackTrace();
-            return;
         }
+    }
 
+    public void consoleStart() {
         if (!interactive) {
+            //
+            // TDOD: error message???
+            //
             return;
         }
 
@@ -99,29 +102,10 @@ public class BshConsoleInterpreter extends Interpreter {
         bshThread.setDaemon(true);
         bshThread.start();
 
-        // Initial prompt
-        // --------------
-        // The parser thread will set the proper prompt calling printPrompt()
-        // once ready; let's wait until we get this first printPrompt() before
-        // reading the input from the console.
-        //
-        synchronized (jline) {
-            try {
-                jline.wait(2000);
-            } catch (InterruptedException x) {
-                // nop
-            }
-        }
-        if (jline.prompt == null) {
-            jline.error("Unable to connect to the interpreter... closing.");
-            return;
-        }
-
         String line = null;
         while (true) {
             try {
-                //line = lineReader.readLine(prompt);
-                line = jline.lineReader.readLine(jline.prompt);
+                line = jline.lineReader.readLine();
 
                 if (line.length() == 0) {// special hack for empty return!
                     line += (";\n");
@@ -134,7 +118,7 @@ public class BshConsoleInterpreter extends Interpreter {
                 // inputs no prompt will be displayed. Only when bsh.Interpreter will
                 // call getBshPrompt(), the prompt for a new statement will be set.
                 //
-                jline.prompt = "";
+                jline.lineReader.setPrompt("");
             } catch (UserInterruptException e) {
                 reset();
             } catch (EndOfFileException e) {
@@ -286,6 +270,8 @@ public class BshConsoleInterpreter extends Interpreter {
                     new File(historyFile)
             );
         }
+
+        lineReader.setPrompt("");
 
         return lineReader;
     }
