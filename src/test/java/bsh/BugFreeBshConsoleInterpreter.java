@@ -85,33 +85,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         new WaitFor(500, new Condition() {
             @Override
             public boolean check() {
-                return (bsh.jline != null) && bsh.jline.connected;  // TODO: to be replaced by something in jline.lineReader
-            }
-        });
-
-        System.out.println();
-    }
-
-    @Test
-    public void prompt_at_start_failure() throws Exception {
-        BshConsoleInterpreter bsh = new BshConsoleInterpreter();
-        bsh.eval("getBshPrompt() { Thread.sleep(10000); }");
-        bsh.consoleInit();
-
-        //
-        // if bsh does not initialize within 3 secs, show an error prompt
-        //
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                bsh.consoleStart();
-            }
-        }).start();
-
-        new WaitFor(3000, new Condition() {
-            @Override
-            public boolean check() {
-                return (bsh.jline != null) && !bsh.jline.connected && STDERR.getLog().contains("Unable to connect to the interpreter... closing.");
+                return (bsh.jline != null) && bsh.jline.lineReader.getPrompt().toString().equals("abc> ");
             }
         });
 

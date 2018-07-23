@@ -24,7 +24,6 @@ import java.io.PipedWriter;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.UserInterruptException;
-import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
@@ -39,10 +38,9 @@ import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
  */
 public class BshConsoleInterpreter extends Interpreter {
 
-    public boolean DEBUG = true;  // workaround for new bewanshell DEBUG... to be removed
+    public boolean DEBUG = false;  // workaround for new bewanshell DEBUG... to be removed
 
     protected boolean discard = false;
-    protected boolean connected = false;
 
     JLineConsoleInterface jline;
 
@@ -284,6 +282,7 @@ public class BshConsoleInterpreter extends Interpreter {
      */
     private void reset() {
         jline.println("\n(...)\n");
+        jline.lineReader.skipRedisplay();
 
         try {
             PipedWriter oldPipe = jline.pipe;

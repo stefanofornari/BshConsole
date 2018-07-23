@@ -18,6 +18,7 @@ package ste.beanshell.jline;
 import java.util.Map;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
+import org.jline.utils.AttributedString;
 
 /**
  *
@@ -35,6 +36,10 @@ public class BshLineReader extends LineReaderImpl {
         }
 
         return false;
+    }
+
+    public AttributedString getPrompt() {
+        return prompt;
     }
 
     public void skipRedisplay() {

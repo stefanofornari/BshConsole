@@ -30,7 +30,6 @@ public class JLineConsoleInterface implements ConsoleInterface {
 
     public BshLineReader lineReader = null;
     public PipedWriter pipe = null;
-    public boolean connected = false;
 
     private Reader in = null;
 
@@ -73,12 +72,8 @@ public class JLineConsoleInterface implements ConsoleInterface {
 
     @Override
     public void prompt(String prompt) {
-        lineReader.setPrompt(this.prompt = prompt);
+        lineReader.setPrompt(prompt);
         lineReader.redisplay();
-
-        if (!connected) {
-            connected = true;
-        }
     }
 
     // --------------------------------------------------------- private methods
