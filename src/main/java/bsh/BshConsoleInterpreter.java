@@ -23,7 +23,6 @@ import java.io.InputStreamReader;
 import java.io.PipedWriter;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
-import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
@@ -31,6 +30,8 @@ import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
 import ste.beanshell.BshCompleter;
 import ste.beanshell.JLineConsoleInterface;
+import ste.beanshell.jline.BshLineReader;
+import ste.beanshell.jline.BshLineReaderBuilder;
 import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
 
 /**
@@ -121,7 +122,7 @@ public class BshConsoleInterpreter extends Interpreter {
         while (true) {
             try {
                 //line = lineReader.readLine(prompt);
-                line = jline.lineReader.readLine(jline.prompt);
+                line = jline.lineReader.readLine();
 
                 if (line.length() == 0) {// special hack for empty return!
                     line += (";\n");
@@ -134,7 +135,8 @@ public class BshConsoleInterpreter extends Interpreter {
                 // inputs no prompt will be displayed. Only when bsh.Interpreter will
                 // call getBshPrompt(), the prompt for a new statement will be set.
                 //
-                jline.prompt = "";
+                jline.lineReader.setPrompt("");
+                jline.lineReader.skipRedisplay();
             } catch (UserInterruptException e) {
                 reset();
             } catch (EndOfFileException e) {
@@ -267,13 +269,13 @@ public class BshConsoleInterpreter extends Interpreter {
     /**
      *
      */
-    private LineReaderImpl buildLineReader() throws IOException, EvalError {
+    private BshLineReader buildLineReader() throws IOException, EvalError {
         Terminal terminal = TerminalBuilder.terminal();
 
         terminal.puts(InfoCmp.Capability.clear_screen);
         terminal.flush();
 
-        LineReaderImpl lineReader = (LineReaderImpl)LineReaderBuilder.builder()
+        BshLineReader lineReader = BshLineReaderBuilder.builder()
                                   .terminal(terminal)
                                   .completer(new BshCompleter(this))
                                   .option(LineReader.Option.DISABLE_EVENT_EXPANSION, true)

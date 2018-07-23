@@ -21,20 +21,20 @@ import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.PrintStream;
 import java.io.Reader;
-import org.jline.reader.impl.LineReaderImpl;
+import ste.beanshell.jline.BshLineReader;
 
 /**
  *
  */
 public class JLineConsoleInterface implements ConsoleInterface {
 
-    public LineReaderImpl lineReader = null;
+    public BshLineReader lineReader = null;
     public PipedWriter pipe = null;
     public String prompt = null;
 
     private Reader in = null;
 
-    public JLineConsoleInterface(LineReaderImpl reader) throws IOException {
+    public JLineConsoleInterface(BshLineReader reader) throws IOException {
         this.lineReader = reader;
         this.pipe = new PipedWriter();
 
@@ -74,6 +74,7 @@ public class JLineConsoleInterface implements ConsoleInterface {
     @Override
     public void prompt(String prompt) {
         lineReader.setPrompt(this.prompt = prompt);
+        lineReader.redisplay();
 
         //
         // See "Initial prompt"

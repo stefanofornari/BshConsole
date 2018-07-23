@@ -12,10 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import org.jline.reader.Candidate;
-import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Terminal;
 
-public class TestLineReader extends LineReaderImpl {
+public class TestLineReader extends BshLineReader {
 
     public boolean list = false;
     public boolean menu = false;
