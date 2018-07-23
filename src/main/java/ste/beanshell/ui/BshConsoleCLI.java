@@ -15,6 +15,7 @@
  */
 package ste.beanshell.ui;
 
+import bsh.BshConsoleInterpreter;
 import bsh.EvalError;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -22,7 +23,6 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParameterException;
-import bsh.BshConsoleInterpreter;
 
 /**
  *
@@ -70,8 +70,8 @@ public class BshConsoleCLI {
             return;
         }
 
-
-        bsh.startConsole();
+        bsh.consoleInit();
+        bsh.consoleStart();
 
     }
 

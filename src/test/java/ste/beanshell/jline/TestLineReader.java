@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 import org.jline.reader.Candidate;
 import org.jline.terminal.Terminal;
+import org.jline.utils.AttributedString;
 
 public class TestLineReader extends BshLineReader {
 
@@ -35,5 +36,9 @@ public class TestLineReader extends BshLineReader {
     protected boolean doMenu(List<Candidate> possible, String completed, BiFunction<CharSequence, Boolean, CharSequence> escaper) {
         menu = true;
         return super.doMenu(possible, completed, escaper);
+    }
+
+    public AttributedString getPrompt() {
+        return prompt;
     }
 }
