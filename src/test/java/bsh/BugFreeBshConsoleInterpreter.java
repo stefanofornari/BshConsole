@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import ste.beanshell.JLineConsoleInterface;
 import ste.beanshell.jline.EofPipedInputStream;
 import ste.beanshell.jline.TestLineReader;
 import ste.xtest.cli.BugFreeCLI;
@@ -93,7 +94,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
     }
 
     /**
-     * Given that setting the prompt and displaying it are on different thread,
+     * Given that setting the prompt and displaying it are on different threads,
      * we want to make sure we read a line (i.e. display the prompt) only after
      * beanshell is ready to accept input.
      */
@@ -125,6 +126,40 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         });
 
         then(STDERR.getLog()).doesNotContain("Parser Error");
+    }
+
+    /**
+     * Given that setting the prompt and displaying it are on different threads,
+     * we want to make sure we read a line (i.e. display the prompt) only after
+     * beanshell is ready to accept input.
+     */
+    @Test(timeout = 1000)
+    public void interrupt_long_running_task() throws Exception {
+        BshConsoleInterpreter bsh = new BshConsoleInterpreter();
+        bsh.eval("getBshPrompt() { return \"abc> \"; };");
+        bsh.consoleInit();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                bsh.consoleStart();
+            }
+        }).start();
+        Thread.sleep(100);
+
+        bsh.jline.pipe.write("Thread.sleep(10000);\n"); bsh.jline.pipe.flush();
+        Thread.sleep(100);
+
+        //
+        // interrupting the execution shall keep the same console interface
+        //
+        final JLineConsoleInterface JLINE = bsh.jline;
+
+        reset(bsh);
+
+        then(bsh.jline).isSameAs(JLINE);
+
+        System.out.println();
     }
 
     // --------------------------------------------------------- private methods

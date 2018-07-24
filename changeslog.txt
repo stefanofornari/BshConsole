@@ -1,3 +1,6 @@
+20180724
+- Ctrl+C now interrupts long running tasks
+
 20180723
 --------
 - better prompt implementation

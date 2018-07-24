@@ -21,6 +21,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedWriter;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.UserInterruptException;
@@ -43,6 +47,9 @@ public class BshConsoleInterpreter extends Interpreter {
     protected boolean discard = false;
 
     JLineConsoleInterface jline;
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    Future will = null;
+
 
     static {
         BshClassPath.addMappingFeedback(
@@ -120,10 +127,11 @@ public class BshConsoleInterpreter extends Interpreter {
                 jline.lineReader.setPrompt("");
                 jline.lineReader.skipRedisplay();
             } catch (UserInterruptException e) {
-                reset();
+                cancel();
             } catch (EndOfFileException e) {
                 try {
                     jline.pipe.close();
+                    executor.shutdown();
                 } catch (IOException x) {
                     // nop
                 }
@@ -138,6 +146,8 @@ public class BshConsoleInterpreter extends Interpreter {
 
     @Override
     public void run() {
+        final BshConsoleInterpreter THIS = this;
+
         /*
           We'll print our banner using eval(String) in order to
           exercise the parser and get the basic expression classes loaded...
@@ -154,7 +164,6 @@ public class BshConsoleInterpreter extends Interpreter {
         // init the callstack.
         CallStack callstack = new CallStack(globalNameSpace);
 
-        SimpleNode node = null;
         int idx = -1;
         while (!Thread.interrupted()) {
             boolean eof = false;
@@ -164,13 +173,27 @@ public class BshConsoleInterpreter extends Interpreter {
                 eof = parser.Line();
                 if (!discard && (parser.jjtree.nodeArity() > 0)) // number of child nodes
                 {
-                    node = (SimpleNode) (parser.jjtree.rootNode());
+                    final SimpleNode node = (SimpleNode) (parser.jjtree.rootNode());
 
                     if (DEBUG) {
                         node.dump(">");
                     }
 
-                    Object ret = node.eval(callstack, this);
+                    Object ret = null;
+                    will = executor.submit(new Callable() {
+                        @Override
+                        public Object call() throws Exception {
+                            return node.eval(callstack, THIS);
+                        }
+                    });
+
+                    try {
+                        ret = will.get();
+                    } catch (Throwable t) {
+                        if (t.getCause() instanceof TargetError) {
+                            throw (TargetError)t.getCause();
+                        }
+                    }
 
                     // sanity check during development
                     if (callstack.depth() > 1) {
@@ -182,8 +205,7 @@ public class BshConsoleInterpreter extends Interpreter {
                         ret = ((ReturnControl) ret).value;
                     }
 
-                    if( ret != Primitive.VOID )
-                    {
+                    if( ret != Primitive.VOID ) {
                         setu("$_", ret);
                         setu("$"+(++idx%10), ret);
                         if ( getShowResults() ) {
@@ -191,14 +213,6 @@ public class BshConsoleInterpreter extends Interpreter {
                         }
                     } else if ( getShowResults() ) {
                         println("--> void");
-                    }
-
-                    if (ret != Primitive.VOID) {
-                        setu("$_", ret);
-                        setu("$"+(++idx%10), ret);
-                    }
-                    if (getShowResults()) {
-                        println("--> " + ret + " : " + StringUtil.typeString(ret));
                     }
                 }
             } catch (ParseException e) {
@@ -223,10 +237,6 @@ public class BshConsoleInterpreter extends Interpreter {
                 if (DEBUG) {
                     e.printStackTrace();
                 }
-            } catch (TokenMgrException e) {
-                if (DEBUG) {
-                    e.printStackTrace();
-                }
             } catch (Exception e) {
                 error("Unknown error: " + e);
                 if (DEBUG) {
@@ -240,6 +250,7 @@ public class BshConsoleInterpreter extends Interpreter {
                     callstack.push(globalNameSpace);
                 }
                 discard = false;
+                will = null;
             }
         }
     }
@@ -280,21 +291,25 @@ public class BshConsoleInterpreter extends Interpreter {
      * Resets the parser closing the current input stream and creating a new
      * parser.
      */
-    private void reset() {
-        jline.println("\n(...)\n");
-        jline.lineReader.skipRedisplay();
+    private void cancel() {
+        if ((will != null) && !will.isDone()) {
+            will.cancel(true);
+        } else {
+            jline.println("\n(...)\n");
 
-        try {
-            PipedWriter oldPipe = jline.pipe;
-            jline = new JLineConsoleInterface(jline.lineReader);
-            console.setIn(jline.getIn());
-            parser = new Parser(jline.getIn());
-            discard = true;
-            oldPipe.close();
-        } catch (IOException x) {
-            // nothing to do...
-            x.printStackTrace();
+            try {
+                PipedWriter oldPipe = jline.pipe;
+                jline = new JLineConsoleInterface(jline.lineReader);
+                console.setIn(jline.getIn());
+                parser = new Parser(jline.getIn());
+                discard = true;
+                oldPipe.close();
+            } catch (IOException x) {
+                // nothing to do...
+                x.printStackTrace();
+            }
         }
+        jline.lineReader.skipRedisplay();
     }
 
     /**
