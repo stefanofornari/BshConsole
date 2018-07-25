@@ -114,7 +114,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
 
         bsh.jline.pipe.write("class A {\n"); bsh.jline.pipe.flush();
 
-        reset(bsh);
+        cancel(bsh);
 
         bsh.jline.pipe.write("print(\"__done__\");"); bsh.jline.pipe.flush();
 
@@ -155,7 +155,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         //
         final JLineConsoleInterface JLINE = bsh.jline;
 
-        reset(bsh);
+        cancel(bsh);
 
         then(bsh.jline).isSameAs(JLINE);
 
@@ -164,8 +164,8 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
 
     // --------------------------------------------------------- private methods
 
-    private void reset(BshConsoleInterpreter bsh) throws Exception {
-        Method m = bsh.getClass().getDeclaredMethod("reset");
+    private void cancel(BshConsoleInterpreter bsh) throws Exception {
+        Method m = bsh.getClass().getDeclaredMethod("cancel");
         m.setAccessible(true);
         m.invoke(bsh);
     }
