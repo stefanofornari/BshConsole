@@ -17,6 +17,7 @@ package bsh;
 
 import static bsh.Interpreter.VERSION;
 import bsh.classpath.BshClassPath;
+import bsh.classpath.EmptyMappingFeedback;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -50,28 +51,10 @@ public class BshConsoleInterpreter extends Interpreter {
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Future will = null;
 
-
     static {
-        BshClassPath.addMappingFeedback(
-            new BshClassPath.MappingFeedback() {
-                @Override
-                public void startClassMapping() {
-                }
-
-                @Override
-                public void classMapping(String msg) {
-                }
-
-                @Override
-                public void errorWhileMapping(String msg) {
-                }
-
-                @Override
-                public void endClassMapping() {
-                }
-            }
-        );
+        BshClassPath.addMappingFeedback(new EmptyMappingFeedback());
     }
+
 
     public BshConsoleInterpreter() throws IOException, EvalError {
         super();
@@ -113,7 +96,7 @@ public class BshConsoleInterpreter extends Interpreter {
             try {
                 line = jline.lineReader.readLine();
 
-                if (line.length() == 0) {// special hack for empty return!
+                if (line.length() == 0) { // special hack for empty return!
                     line += (";\n");
                 }
 

@@ -15,6 +15,8 @@
  */
 package bsh;
 
+import bsh.classpath.BshClassPath;
+import bsh.classpath.EmptyMappingFeedback;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +36,7 @@ import ste.beanshell.jline.TestLineReader;
 import ste.xtest.cli.BugFreeCLI;
 import ste.xtest.concurrent.Condition;
 import ste.xtest.concurrent.WaitFor;
+import ste.xtest.reflect.PrivateAccess;
 
 
 /**
@@ -160,6 +163,14 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         then(bsh.jline).isSameAs(JLINE);
 
         System.out.println();
+    }
+
+    @Test
+    public void default_mapping_feedback() throws Exception {
+        BshConsoleInterpreter bsh = new BshConsoleInterpreter();
+
+        then(PrivateAccess.getStaticValue(BshClassPath.class, "mappingFeedbackListener"))
+             .isNotNull().isInstanceOf(EmptyMappingFeedback.class);
     }
 
     // --------------------------------------------------------- private methods
