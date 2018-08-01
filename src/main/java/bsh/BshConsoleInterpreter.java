@@ -173,8 +173,8 @@ public class BshConsoleInterpreter extends Interpreter {
                     try {
                         ret = will.get();
                     } catch (Throwable t) {
-                        if (t.getCause() instanceof TargetError) {
-                            throw (TargetError)t.getCause();
+                        if (t.getCause() instanceof EvalError) {
+                            throw (EvalError)t.getCause();
                         }
                     }
 
