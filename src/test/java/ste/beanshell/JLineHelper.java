@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.jline.reader.EndOfFileException;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
@@ -53,9 +54,11 @@ public class JLineHelper {
         reader.in.setIn(new ByteArrayInputStream(buffer.getBytes()));
 
         // run it through the reader
-        while (reader.readLine(null, null, (Character)null, null) != null) {
-            // nop
-        }
+        try {
+            while (reader.readLine(null, null, (Character)null, null) != null) {
+                // nop
+            }
+        } catch(EndOfFileException x) { /* nop */ }
 
         then(reader.getBuffer().toString()).isEqualTo(expected);
     }
@@ -71,9 +74,11 @@ public class JLineHelper {
         // run it through the reader
         StringBuilder sb = new StringBuilder();
         String line = null;
-        while ((line = reader.readLine(null, null, (Character)null, null)) != null) {
-            sb.append(line).append('\n');
-        }
+        try {
+            while ((line = reader.readLine(null, null, (Character)null, null)) != null) {
+                sb.append(line).append('\n');
+            }
+        } catch(EndOfFileException x) { /* nop */ }
 
         then(sb.toString()).isEqualTo(expected);
     }

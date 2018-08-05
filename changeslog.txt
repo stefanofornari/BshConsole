@@ -1,3 +1,9 @@
+20180805
+- upgraded to jline 3.9.0
+
+20180804
+- Released v1.0.0 to maven central
+
 20180724
 - Ctrl+C now interrupts long running tasks
 
