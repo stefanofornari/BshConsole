@@ -72,7 +72,6 @@ public class BshConsoleCLI {
 
         bsh.consoleInit();
         bsh.consoleStart();
-
     }
 
     public void syntax() {
