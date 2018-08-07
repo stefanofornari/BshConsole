@@ -18,13 +18,11 @@ package ste.beanshell;
 import bsh.ConsoleInterface;
 import java.io.PipedReader;
 import java.io.PipedWriter;
-import java.io.Reader;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.beanshell.jline.TestBuffer;
 import ste.beanshell.jline.TestLineReader;
 import ste.xtest.cli.BugFreeCLI;
-import ste.xtest.reflect.PrivateAccess;
 
 /**
  *
