@@ -44,17 +44,16 @@ import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
 public class BshConsoleInterpreter extends Interpreter {
 
     public boolean DEBUG = false;  // workaround for new bewanshell DEBUG... to be removed
+    public JLineConsoleInterface jline;
 
     protected boolean discard = false;
 
-    JLineConsoleInterface jline;
     ExecutorService executor = Executors.newSingleThreadExecutor();
     Future will = null;
 
     static {
         BshClassPath.addMappingFeedback(new EmptyMappingFeedback());
     }
-
 
     public BshConsoleInterpreter() throws IOException, EvalError {
         super();

@@ -41,4 +41,8 @@ public class TestLineReader extends BshLineReader {
     public AttributedString getPrompt() {
         return prompt;
     }
+
+    public void setPrompt(String prompt) {
+        this.prompt = (prompt == null) ? new AttributedString(""): new AttributedString(prompt);
+    }
 }

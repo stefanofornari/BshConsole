@@ -16,17 +16,25 @@
 package ste.beanshell;
 
 import bsh.ConsoleInterface;
+import bsh.InterpreterEvent;
+import static bsh.InterpreterEvent.READY;
 import java.io.IOException;
 import java.io.PipedReader;
 import java.io.PipedWriter;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.util.ArrayList;
+import java.util.List;
+import org.jline.utils.AttributedString;
+import org.jline.utils.Status;
 import ste.beanshell.jline.BshLineReader;
 
 /**
  *
  */
 public class JLineConsoleInterface implements ConsoleInterface {
+
+    public static final String DEFAULT_PROMPT = "% ";
 
     public BshLineReader lineReader = null;
     public PipedWriter pipe = null;
@@ -36,9 +44,32 @@ public class JLineConsoleInterface implements ConsoleInterface {
     public JLineConsoleInterface(BshLineReader reader) throws IOException {
         this.lineReader = reader;
         this.pipe = new PipedWriter();
+        this.in   = new PipedReader(pipe);
 
-        this.in  = new PipedReader(pipe);
+        this.lineReader.setPrompt(DEFAULT_PROMPT);
+
+        Status status = Status.getStatus(lineReader.getTerminal());
+        List<AttributedString> lines = new ArrayList<>();
+        lines.add(
+            new AttributedString(
+                new String(new char[lineReader.getTerminal().getWidth()]).replace("\0", "-")
+            )
+        );
+        lines.add(
+            new AttributedString("hello world!")
+        );
+        //AttributedStyle.INVERSE.foreground(Integer.parseInt("001b", 16)).background(AttributedStyle.WHITE)
+        status.update(lines);
+        status.redraw();
     }
+
+    public void on(InterpreterEvent e) {
+        if (e == READY) {
+            prompt(lineReader.getPrompt().toString());
+        }
+    }
+
+    // -------------------------------------------------------- ConsoleInterface
 
     @Override
     public Reader getIn() {
