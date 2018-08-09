@@ -19,7 +19,16 @@ package bsh;
  *
 
  */
-public enum InterpreterEvent {
-    READY,
-    BUSY
+public class InterpreterEvent {
+
+    public static final String READY = "READY";
+    public static final String BUSY  = "BUSY" ;
+
+    public String type;
+    public BshConsoleInterpreter source;
+
+    public InterpreterEvent(BshConsoleInterpreter source, String type) {
+        this.source = source;
+        this.type = type;
+    }
 };

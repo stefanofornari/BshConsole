@@ -17,13 +17,8 @@ package bsh;
 
 import bsh.classpath.BshClassPath;
 import bsh.classpath.EmptyMappingFeedback;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.PipedReader;
-import java.io.PipedWriter;
 import java.lang.reflect.Method;
-import org.apache.commons.io.input.ReaderInputStream;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.reader.LineReader;
 import org.junit.Before;
@@ -31,8 +26,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import ste.beanshell.JLineConsoleInterface;
-import ste.beanshell.jline.EofPipedInputStream;
-import ste.beanshell.jline.TestLineReader;
 import ste.xtest.cli.BugFreeCLI;
 import ste.xtest.concurrent.Condition;
 import ste.xtest.concurrent.WaitFor;
@@ -180,35 +173,4 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         m.setAccessible(true);
         m.invoke(bsh);
     }
-
-    // --------------------------------------------------------- TempLineReader
-
-    private class TempLineReader extends TestLineReader {
-        BshConsoleInterpreter bsh;
-        int conut = 0;
-        PipedWriter pipeW;
-        BufferedReader pipeR;
-
-        public TempLineReader(BshConsoleInterpreter bsh) throws IOException {
-            super(bsh.jline.lineReader.getTerminal(), "JLine", null, new EofPipedInputStream());
-
-            this.bsh = bsh;
-            this.pipeW = new PipedWriter();
-            this.pipeR = new BufferedReader(new PipedReader(this.pipeW));
-            this.in.setIn(new ReaderInputStream(pipeR));
-            this.prompt = null;
-        }
-
-        @Override
-        public String readLine(String prompt) {
-            try {
-                System.out.println(System.currentTimeMillis() +  " - count: " + count);
-                bsh.set("done", (++count > 1));
-                return pipeR.readLine();
-            } catch  (Exception x) {
-                return null;
-            }
-        }
-    }
-
 }

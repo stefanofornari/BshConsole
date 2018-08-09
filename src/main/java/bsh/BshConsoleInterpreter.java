@@ -16,6 +16,8 @@
 package bsh;
 
 import static bsh.Interpreter.VERSION;
+import static bsh.InterpreterEvent.BUSY;
+import static bsh.InterpreterEvent.READY;
 import bsh.classpath.BshClassPath;
 import bsh.classpath.EmptyMappingFeedback;
 import java.io.File;
@@ -39,12 +41,12 @@ import ste.beanshell.jline.BshLineReaderBuilder;
 import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
 
 /**
- *
+ * TODO: remove dependency on Interpreter
  */
 public class BshConsoleInterpreter extends Interpreter {
 
     public boolean DEBUG = false;  // workaround for new bewanshell DEBUG... to be removed
-    public JLineConsoleInterface jline;
+    public JLineConsoleInterface jline;  // TODO: to be removed with the dependency on Interpreter
 
     protected boolean discard = false;
 
@@ -150,8 +152,7 @@ public class BshConsoleInterpreter extends Interpreter {
         while (!Thread.interrupted()) {
             boolean eof = false;
             try {
-                console.prompt(getBshPrompt());
-
+                jline.on(new InterpreterEvent(THIS, READY));
                 eof = parser.Line();
                 if (!discard && (parser.jjtree.nodeArity() > 0)) // number of child nodes
                 {
@@ -169,6 +170,7 @@ public class BshConsoleInterpreter extends Interpreter {
                         }
                     });
 
+                    jline.on(new InterpreterEvent(THIS, BUSY));
                     try {
                         ret = will.get();
                     } catch (Throwable t) {
@@ -292,19 +294,5 @@ public class BshConsoleInterpreter extends Interpreter {
             }
         }
         jline.lineReader.skipRedisplay();
-    }
-
-    /**
-     * Get the prompt string defined by the getBshPrompt() method in the global
-     * namespace. This may be from the getBshPrompt() command or may be defined
-     * by the user as with any other method. Defaults to "bsh % " if the method
-     * is not defined or there is an error.
-     */
-    private String getBshPrompt() {
-        try {
-            return (String) eval("getBshPrompt()");
-        } catch (Exception e) {
-            return "bsh % ";
-        }
     }
 }

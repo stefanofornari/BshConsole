@@ -17,6 +17,7 @@ package ste.beanshell;
 
 import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
+import static bsh.InterpreterEvent.READY;
 import java.io.PipedReader;
 import java.io.PipedWriter;
 import static org.assertj.core.api.BDDAssertions.then;
@@ -82,11 +83,23 @@ public class BugFreeJLineConsoleInterface extends BugFreeCLI {
         JLineConsoleInterface console = new JLineConsoleInterface(r);
 
         console.lineReader.setPrompt("abc> ");
-        console.on(InterpreterEvent.READY);
+        console.on(new InterpreterEvent(null, READY));
         H.thenBufferIs(r, "abc> ", new TestBuffer("abc> "));
 
         console.lineReader.setPrompt("cde# ");
-        console.on(InterpreterEvent.READY);
+        console.on(new InterpreterEvent(null, READY));
         H.thenBufferIs(r, "cde# ", new TestBuffer("cde# "));
     }
+
+    @Test
+    public void change_status_on_events() throws Exception {
+        final JLineHelper H = new JLineHelper();
+        TestLineReader r = H.givenReader();
+
+        JLineConsoleInterface console = new JLineConsoleInterface(r);
+
+        console.on(new InterpreterEvent(null, READY));
+        System.out.println(r.getTerminal().output().toString());
+    }
+
 }

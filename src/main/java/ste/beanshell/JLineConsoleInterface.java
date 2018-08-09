@@ -15,8 +15,10 @@
  */
 package ste.beanshell;
 
+import bsh.BshConsoleInterpreter;
 import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
+import static bsh.InterpreterEvent.BUSY;
 import static bsh.InterpreterEvent.READY;
 import java.io.IOException;
 import java.io.PipedReader;
@@ -47,25 +49,15 @@ public class JLineConsoleInterface implements ConsoleInterface {
         this.in   = new PipedReader(pipe);
 
         this.lineReader.setPrompt(DEFAULT_PROMPT);
-
-        Status status = Status.getStatus(lineReader.getTerminal());
-        List<AttributedString> lines = new ArrayList<>();
-        lines.add(
-            new AttributedString(
-                new String(new char[lineReader.getTerminal().getWidth()]).replace("\0", "-")
-            )
-        );
-        lines.add(
-            new AttributedString("hello world!")
-        );
-        //AttributedStyle.INVERSE.foreground(Integer.parseInt("001b", 16)).background(AttributedStyle.WHITE)
-        status.update(lines);
-        status.redraw();
     }
 
     public void on(InterpreterEvent e) {
-        if (e == READY) {
-            prompt(lineReader.getPrompt().toString());
+        if (READY.equals(e.type)) {
+            status(READY);
+            lineReader.setPrompt(getBshPrompt(e.source));
+            lineReader.redisplay();
+        } else if (BUSY.equals(e.type)) {
+            status(BUSY);
         }
     }
 
@@ -101,12 +93,31 @@ public class JLineConsoleInterface implements ConsoleInterface {
        System.err.println(o);
     }
 
-    @Override
-    public void prompt(String prompt) {
-        lineReader.setPrompt(prompt);
-        lineReader.redisplay();
+    // --------------------------------------------------------- private methods
+
+    private String getBshPrompt(BshConsoleInterpreter bsh) {
+        try {
+            return (String)bsh.eval("getBshPrompt()");
+        } catch ( Exception e ) {
+            return "bsh % ";
+        }
+
     }
 
-    // --------------------------------------------------------- private methods
+    private void status(String msg) {
+        Status status = Status.getStatus(lineReader.getTerminal());
+        List<AttributedString> lines = new ArrayList<>();
+        lines.add(
+            new AttributedString(
+                new String(new char[lineReader.getTerminal().getWidth()]).replace("\0", "-")
+            )
+        );
+        lines.add(
+            new AttributedString(msg)
+        );
+        //AttributedStyle.INVERSE.foreground(Integer.parseInt("001b", 16)).background(AttributedStyle.WHITE)
+        status.update(lines);
+        status.redraw();
+    }
 
 }
