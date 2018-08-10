@@ -17,14 +17,19 @@ package ste.beanshell;
 
 import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
+import static bsh.InterpreterEvent.BUSY;
 import static bsh.InterpreterEvent.READY;
 import java.io.PipedReader;
 import java.io.PipedWriter;
+import org.apache.commons.lang3.StringUtils;
 import static org.assertj.core.api.BDDAssertions.then;
+import org.jline.terminal.impl.DumbTerminal;
+import org.jline.utils.Status;
 import org.junit.Test;
 import ste.beanshell.jline.TestBuffer;
 import ste.beanshell.jline.TestLineReader;
 import ste.xtest.cli.BugFreeCLI;
+import ste.xtest.reflect.PrivateAccess;
 
 /**
  *
@@ -95,11 +100,19 @@ public class BugFreeJLineConsoleInterface extends BugFreeCLI {
     public void change_status_on_events() throws Exception {
         final JLineHelper H = new JLineHelper();
         TestLineReader r = H.givenReader();
+        Status status = ((DumbTerminal)r.getTerminal()).getStatus();
+        PrivateAccess.setInstanceValue(status, "supported", true);
+        status.resize();
 
         JLineConsoleInterface console = new JLineConsoleInterface(r);
 
         console.on(new InterpreterEvent(null, READY));
-        System.out.println(r.getTerminal().output().toString());
+
+        then(r.getTerminal().output().toString()).contains(StringUtils.repeat('-', 80)).contains("READY");
+
+        console.on(new InterpreterEvent(null, BUSY));
+
+        then(r.getTerminal().output().toString()).contains(StringUtils.repeat('-', 80)).contains("BUSY");
     }
 
 }

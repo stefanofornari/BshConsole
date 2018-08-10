@@ -38,7 +38,7 @@ public class JLineHelper {
         EofPipedInputStream in = new EofPipedInputStream();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Terminal terminal = new DumbTerminal("terminal", "ansi", in, out, StandardCharsets.UTF_8);
-        terminal.setSize(new Size(160, 80));
+        terminal.setSize(new Size(80, 25));
         TestLineReader reader = new TestLineReader(terminal, "JLine", null, in);
         reader.setKeyMap(LineReaderImpl.EMACS);
 
