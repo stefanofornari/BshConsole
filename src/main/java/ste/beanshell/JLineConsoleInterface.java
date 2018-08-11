@@ -19,6 +19,7 @@ import bsh.BshConsoleInterpreter;
 import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
 import static bsh.InterpreterEvent.BUSY;
+import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;
 import java.io.IOException;
 import java.io.PipedReader;
@@ -27,7 +28,9 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Future;
 import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStyle;
 import org.jline.utils.Status;
 import ste.beanshell.jline.BshLineReader;
 
@@ -42,6 +45,7 @@ public class JLineConsoleInterface implements ConsoleInterface {
     public PipedWriter pipe = null;
 
     private Reader in = null;
+    private Future runningTask = null;
 
     public JLineConsoleInterface(BshLineReader reader) throws IOException {
         this.lineReader = reader;
@@ -57,7 +61,11 @@ public class JLineConsoleInterface implements ConsoleInterface {
             lineReader.setPrompt(getBshPrompt(e.source));
             lineReader.redisplay();
         } else if (BUSY.equals(e.type)) {
+            runningTask = (Future)e.data;
             status(BUSY);
+        } else if (DONE.equals(e.type)) {
+            runningTask = null;
+            status("");
         }
     }
 
@@ -107,15 +115,23 @@ public class JLineConsoleInterface implements ConsoleInterface {
     private void status(String msg) {
         Status status = Status.getStatus(lineReader.getTerminal());
         List<AttributedString> lines = new ArrayList<>();
+
         lines.add(
             new AttributedString(
                 new String(new char[lineReader.getTerminal().getWidth()]).replace("\0", "-")
             )
         );
-        lines.add(
-            new AttributedString(msg)
-        );
-        //AttributedStyle.INVERSE.foreground(Integer.parseInt("001b", 16)).background(AttributedStyle.WHITE)
+
+        String statusLine = msg + "\t| ";
+        if ((runningTask != null) && !runningTask.isDone()) {
+            statusLine +=
+                new AttributedString(
+                    " T" + runningTask.hashCode() + " ",
+                    AttributedStyle.INVERSE.foreground(2).background(AttributedStyle.WHITE)
+                ).toAnsi();
+        }
+        lines.add(new AttributedString(statusLine));
+
         status.update(lines);
         status.redraw();
     }

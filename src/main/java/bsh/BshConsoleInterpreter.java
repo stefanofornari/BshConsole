@@ -17,6 +17,7 @@ package bsh;
 
 import static bsh.Interpreter.VERSION;
 import static bsh.InterpreterEvent.BUSY;
+import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;
 import bsh.classpath.BshClassPath;
 import bsh.classpath.EmptyMappingFeedback;
@@ -110,16 +111,17 @@ public class BshConsoleInterpreter extends Interpreter {
                 //
                 jline.lineReader.setPrompt("");
                 jline.lineReader.skipRedisplay();
-            } catch (UserInterruptException e) {
+            } catch (UserInterruptException x) {
                 cancel();
-            } catch (EndOfFileException e) {
+            } catch (EndOfFileException x) {
                 try {
                     jline.pipe.close();
                     executor.shutdown();
-                } catch (IOException x) {
+                } catch (IOException xx) {
                     // nop
                 }
                 jline.println("See you...");
+
                 return;
             } catch (IOException x) {
                 jline.error("IO error... closing.");
@@ -170,9 +172,10 @@ public class BshConsoleInterpreter extends Interpreter {
                         }
                     });
 
-                    jline.on(new InterpreterEvent(THIS, BUSY));
+                    jline.on(new InterpreterEvent(THIS, BUSY, will));
                     try {
                         ret = will.get();
+                        jline.on(new InterpreterEvent(THIS, DONE, will));
                     } catch (Throwable t) {
                         if (t.getCause() instanceof EvalError) {
                             throw (EvalError)t.getCause();

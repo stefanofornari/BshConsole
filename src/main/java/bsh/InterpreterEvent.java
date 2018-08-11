@@ -23,12 +23,19 @@ public class InterpreterEvent {
 
     public static final String READY = "READY";
     public static final String BUSY  = "BUSY" ;
+    public static final String DONE  = "DONE" ;
 
     public String type;
     public BshConsoleInterpreter source;
+    public Object data;
 
-    public InterpreterEvent(BshConsoleInterpreter source, String type) {
+    public InterpreterEvent(BshConsoleInterpreter source, String type, Object data) {
         this.source = source;
         this.type = type;
+        this.data = data;
+    }
+
+    public InterpreterEvent(BshConsoleInterpreter source, String type) {
+        this(source, type, null);
     }
 };

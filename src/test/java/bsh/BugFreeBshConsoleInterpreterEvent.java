@@ -16,8 +16,10 @@
 package bsh;
 
 import static bsh.InterpreterEvent.BUSY;
+import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;
 import java.util.ArrayList;
+import java.util.concurrent.Future;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.beanshell.JLineConsoleInterface;
@@ -94,13 +96,16 @@ public class BugFreeBshConsoleInterpreterEvent {
         new WaitFor(2500, new Condition() {
             @Override
             public boolean check() {
-                return (events.size() == 3);  // wait for the execution
+                return (events.size() == 4);  // wait for the execution
             }
         });
 
         then(events.get(0).type).isEqualTo(READY);
         then(events.get(1).type).isEqualTo(BUSY);
-        then(events.get(2).type).isEqualTo(READY);
+        then(events.get(1).data).isNotNull().isInstanceOf(Future.class);
+        then(events.get(2).type).isEqualTo(DONE);
+        then(events.get(2).data).isSameAs(events.get(1).data);
+        then(events.get(3).type).isEqualTo(READY);
 
         for (int i=0; i<3; ++i) {
             then(events.get(i).source).isSameAs(bsh);

@@ -18,9 +18,13 @@ package ste.beanshell;
 import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
 import static bsh.InterpreterEvent.BUSY;
+import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;
+import java.io.ByteArrayOutputStream;
 import java.io.PipedReader;
 import java.io.PipedWriter;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 import org.apache.commons.lang3.StringUtils;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.terminal.impl.DumbTerminal;
@@ -104,15 +108,23 @@ public class BugFreeJLineConsoleInterface extends BugFreeCLI {
         PrivateAccess.setInstanceValue(status, "supported", true);
         status.resize();
 
+        ByteArrayOutputStream out = (ByteArrayOutputStream)r.getTerminal().output();
+
         JLineConsoleInterface console = new JLineConsoleInterface(r);
-
         console.on(new InterpreterEvent(null, READY));
+        then(out.toString()).contains(StringUtils.repeat('-', 80)).contains("READY");
+        out.reset();
 
-        then(r.getTerminal().output().toString()).contains(StringUtils.repeat('-', 80)).contains("READY");
+        Future f = new CompletableFuture();
+        console.on(new InterpreterEvent(null, BUSY, f));
+        then(out.toString())
+            .contains(StringUtils.repeat('-', 80)).contains("BUSY").contains("T" + f.hashCode());
+        out.reset();
 
-        console.on(new InterpreterEvent(null, BUSY));
+        console.on(new InterpreterEvent(null, DONE, f));
+        then(out.toString())
+            .contains(StringUtils.repeat('-', 80)).doesNotContain("T" + f.hashCode());
 
-        then(r.getTerminal().output().toString()).contains(StringUtils.repeat('-', 80)).contains("BUSY");
     }
 
 }
