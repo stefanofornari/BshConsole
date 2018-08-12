@@ -25,7 +25,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import ste.beanshell.JLineConsoleInterface;
+import ste.beanshell.JLineConsole;
 import ste.xtest.cli.BugFreeCLI;
 import ste.xtest.concurrent.Condition;
 import ste.xtest.concurrent.WaitFor;
@@ -149,7 +149,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         //
         // interrupting the execution shall keep the same console interface
         //
-        final JLineConsoleInterface JLINE = bsh.jline;
+        final JLineConsole JLINE = bsh.jline;
 
         cancel(bsh);
 

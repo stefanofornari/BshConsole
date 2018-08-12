@@ -37,7 +37,7 @@ import ste.beanshell.jline.BshLineReader;
 /**
  *
  */
-public class JLineConsoleInterface implements ConsoleInterface {
+public class JLineConsole implements ConsoleInterface {
 
     public static final String DEFAULT_PROMPT = "% ";
 
@@ -47,7 +47,7 @@ public class JLineConsoleInterface implements ConsoleInterface {
     private Reader in = null;
     private Future runningTask = null;
 
-    public JLineConsoleInterface(BshLineReader reader) throws IOException {
+    public JLineConsole(BshLineReader reader) throws IOException {
         this.lineReader = reader;
         this.pipe = new PipedWriter();
         this.in   = new PipedReader(pipe);
@@ -67,6 +67,30 @@ public class JLineConsoleInterface implements ConsoleInterface {
             runningTask = null;
             status("");
         }
+    }
+
+    private void status(String msg) {
+        Status status = Status.getStatus(lineReader.getTerminal());
+        List<AttributedString> lines = new ArrayList<>();
+
+        lines.add(
+            new AttributedString(
+                new String(new char[lineReader.getTerminal().getWidth()]).replace("\0", "-")
+            )
+        );
+
+        String statusLine = msg + "\t| ";
+        if ((runningTask != null) && !runningTask.isDone()) {
+            statusLine +=
+                new AttributedString(
+                    " T" + runningTask.hashCode() + " ",
+                    AttributedStyle.INVERSE.foreground(2).background(AttributedStyle.WHITE)
+                ).toAnsi();
+        }
+        lines.add(new AttributedString(statusLine));
+
+        status.update(lines);
+        status.redraw();
     }
 
     // -------------------------------------------------------- ConsoleInterface
@@ -111,29 +135,4 @@ public class JLineConsoleInterface implements ConsoleInterface {
         }
 
     }
-
-    private void status(String msg) {
-        Status status = Status.getStatus(lineReader.getTerminal());
-        List<AttributedString> lines = new ArrayList<>();
-
-        lines.add(
-            new AttributedString(
-                new String(new char[lineReader.getTerminal().getWidth()]).replace("\0", "-")
-            )
-        );
-
-        String statusLine = msg + "\t| ";
-        if ((runningTask != null) && !runningTask.isDone()) {
-            statusLine +=
-                new AttributedString(
-                    " T" + runningTask.hashCode() + " ",
-                    AttributedStyle.INVERSE.foreground(2).background(AttributedStyle.WHITE)
-                ).toAnsi();
-        }
-        lines.add(new AttributedString(statusLine));
-
-        status.update(lines);
-        status.redraw();
-    }
-
 }

@@ -38,26 +38,26 @@ import ste.xtest.reflect.PrivateAccess;
 /**
  *
  */
-public class BugFreeJLineConsoleInterface extends BugFreeCLI {
+public class BugFreeJLineConsole extends BugFreeCLI {
 
     private final JLineHelper H = new JLineHelper();
 
     @Test
     public void is_a_ConsoleInterface() throws Exception {
-        then(new JLineConsoleInterface(H.givenReader())).isInstanceOf(ConsoleInterface.class);
+        then(new JLineConsole(H.givenReader())).isInstanceOf(ConsoleInterface.class);
     }
 
     @Test
     public void constructor() throws Exception {
         TestLineReader r = H.givenReader();
-        JLineConsoleInterface console = new JLineConsoleInterface(r);
+        JLineConsole console = new JLineConsole(r);
 
         H.thenLinesAre((TestLineReader)console.lineReader, "hello world\n", new TestBuffer("hello world").CR());
     }
 
     @Test
     public void streams() throws Exception {
-        JLineConsoleInterface console = new JLineConsoleInterface(H.givenReader());
+        JLineConsole console = new JLineConsole(H.givenReader());
 
         then(console.pipe).isNotNull().isInstanceOf(PipedWriter.class);
         then(console.getIn()).isNotNull().isInstanceOf(PipedReader.class);
@@ -67,7 +67,7 @@ public class BugFreeJLineConsoleInterface extends BugFreeCLI {
 
     @Test
     public void print_println_error() throws Exception {
-        JLineConsoleInterface console = new JLineConsoleInterface(H.givenReader());
+        JLineConsole console = new JLineConsole(H.givenReader());
 
         console.print("hello "); then(STDOUT.getLog()).isEqualTo("hello ");
         console.print("world"); then(STDOUT.getLog()).isEqualTo("hello world");
@@ -79,7 +79,7 @@ public class BugFreeJLineConsoleInterface extends BugFreeCLI {
 
     @Test
     public void default_prompt() throws Exception {
-        JLineConsoleInterface console = new JLineConsoleInterface(H.givenReader());
+        JLineConsole console = new JLineConsole(H.givenReader());
 
         then(console.lineReader.getPrompt().toString()).isEqualTo("% ");
     }
@@ -89,7 +89,7 @@ public class BugFreeJLineConsoleInterface extends BugFreeCLI {
         final JLineHelper H = new JLineHelper();
         TestLineReader r = H.givenReader();
 
-        JLineConsoleInterface console = new JLineConsoleInterface(r);
+        JLineConsole console = new JLineConsole(r);
 
         console.lineReader.setPrompt("abc> ");
         console.on(new InterpreterEvent(null, READY));
@@ -110,7 +110,7 @@ public class BugFreeJLineConsoleInterface extends BugFreeCLI {
 
         ByteArrayOutputStream out = (ByteArrayOutputStream)r.getTerminal().output();
 
-        JLineConsoleInterface console = new JLineConsoleInterface(r);
+        JLineConsole console = new JLineConsole(r);
         console.on(new InterpreterEvent(null, READY));
         then(out.toString()).contains(StringUtils.repeat('-', 80)).contains("READY");
         out.reset();

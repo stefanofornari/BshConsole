@@ -36,7 +36,7 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
 import ste.beanshell.BshCompleter;
-import ste.beanshell.JLineConsoleInterface;
+import ste.beanshell.JLineConsole;
 import ste.beanshell.jline.BshLineReader;
 import ste.beanshell.jline.BshLineReaderBuilder;
 import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
@@ -47,7 +47,7 @@ import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
 public class BshConsoleInterpreter extends Interpreter {
 
     public boolean DEBUG = false;  // workaround for new bewanshell DEBUG... to be removed
-    public JLineConsoleInterface jline;  // TODO: to be removed with the dependency on Interpreter
+    public JLineConsole jline;  // TODO: to be removed with the dependency on Interpreter
 
     protected boolean discard = false;
 
@@ -73,7 +73,7 @@ public class BshConsoleInterpreter extends Interpreter {
 
     public void consoleInit() {
         try {
-            jline = new JLineConsoleInterface(buildLineReader());
+            jline = new JLineConsole(buildLineReader());
             setConsole(jline);
         } catch (Exception x) {
             error("Unable to create the line reader... closing.");
@@ -115,7 +115,7 @@ public class BshConsoleInterpreter extends Interpreter {
                 cancel();
             } catch (EndOfFileException x) {
                 try {
-                    jline.pipe.close();
+                    close();
                     executor.shutdown();
                 } catch (IOException xx) {
                     // nop
@@ -286,7 +286,7 @@ public class BshConsoleInterpreter extends Interpreter {
 
             try {
                 PipedWriter oldPipe = jline.pipe;
-                jline = new JLineConsoleInterface(jline.lineReader);
+                jline = new JLineConsole(jline.lineReader);
                 console.setIn(jline.getIn());
                 parser = new Parser(jline.getIn());
                 discard = true;

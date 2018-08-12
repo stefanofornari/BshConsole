@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Future;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.beanshell.JLineConsoleInterface;
+import ste.beanshell.JLineConsole;
 import ste.xtest.concurrent.Condition;
 import ste.xtest.concurrent.WaitFor;
 
@@ -38,7 +38,7 @@ public class BugFreeBshConsoleInterpreterEvent {
         bsh.consoleInit();
 
         final ArrayList<InterpreterEvent> events = new ArrayList<>();
-        bsh.jline = new JLineConsoleInterface(bsh.jline.lineReader) {
+        bsh.jline = new JLineConsole(bsh.jline.lineReader) {
             @Override
             public void on(InterpreterEvent e) {
                 events.add(e);
@@ -69,7 +69,7 @@ public class BugFreeBshConsoleInterpreterEvent {
         bsh.consoleInit();
 
         final ArrayList<InterpreterEvent> events = new ArrayList<>();
-        bsh.jline = new JLineConsoleInterface(bsh.jline.lineReader) {
+        bsh.jline = new JLineConsole(bsh.jline.lineReader) {
             @Override
             public void on(InterpreterEvent e) {
                 events.add(e);
