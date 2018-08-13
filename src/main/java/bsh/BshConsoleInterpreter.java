@@ -29,6 +29,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.UserInterruptException;
@@ -50,8 +52,9 @@ public class BshConsoleInterpreter extends Interpreter {
     public JLineConsole jline;  // TODO: to be removed with the dependency on Interpreter
 
     protected boolean discard = false;
+    protected boolean waitForTask = true;
 
-    ExecutorService executor = Executors.newSingleThreadExecutor();
+    ExecutorService executor = Executors.newCachedThreadPool();
     Future will = null;
 
     static {
@@ -74,6 +77,12 @@ public class BshConsoleInterpreter extends Interpreter {
     public void consoleInit() {
         try {
             jline = new JLineConsole(buildLineReader());
+            jline.lineReader.getTerminal().handle(Terminal.Signal.TSTP, new Terminal.SignalHandler() {
+                @Override
+                public void handle(Terminal.Signal signal) {
+                    waitForTask = false;
+                }
+            });
             setConsole(jline);
         } catch (Exception x) {
             error("Unable to create the line reader... closing.");
@@ -164,42 +173,56 @@ public class BshConsoleInterpreter extends Interpreter {
                         node.dump(">");
                     }
 
+                    final CallStack CURRENT_CURRENT_STACK = callstack;
                     Object ret = null;
+                    waitForTask = true;
                     will = executor.submit(new Callable() {
                         @Override
                         public Object call() throws Exception {
-                            return node.eval(callstack, THIS);
+                            return node.eval(CURRENT_CURRENT_STACK, THIS);
                         }
                     });
 
                     jline.on(new InterpreterEvent(THIS, BUSY, will));
-                    try {
-                        ret = will.get();
-                        jline.on(new InterpreterEvent(THIS, DONE, will));
-                    } catch (Throwable t) {
-                        if (t.getCause() instanceof EvalError) {
-                            throw (EvalError)t.getCause();
+                    do {
+                        try {
+                            ret = will.get(25, TimeUnit.MILLISECONDS);
+                            jline.on(new InterpreterEvent(THIS, DONE, will));
+                        } catch (TimeoutException c) {
+                            if (waitForTask) {
+                                continue;
+                            }
+                            callstack = new CallStack(globalNameSpace);
+                        } catch (Throwable t) {
+                            if (t.getCause() instanceof EvalError) {
+                                throw (EvalError)t.getCause();
+                            } else {
+                                throw new TargetError(t.getCause(), node, callstack);
+                            }
                         }
-                    }
+                        break;
+                    } while (!will.isDone());
 
-                    // sanity check during development
-                    if (callstack.depth() > 1) {
-                        throw new InterpreterError(
-                                "Callstack growing: " + callstack);
-                    }
-
-                    if (ret instanceof ReturnControl) {
-                        ret = ((ReturnControl) ret).value;
-                    }
-
-                    if( ret != Primitive.VOID ) {
-                        setu("$_", ret);
-                        setu("$"+(++idx%10), ret);
-                        if ( getShowResults() ) {
-                            println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                    if (waitForTask) {
+                        // sanity check during development
+                        if (callstack.depth() > 1) {
+                            throw new InterpreterError(
+                                    "Callstack growing: " + callstack);
                         }
-                    } else if ( getShowResults() ) {
-                        println("--> void");
+
+                        if (ret instanceof ReturnControl) {
+                            ret = ((ReturnControl) ret).value;
+                        }
+
+                        if( ret != Primitive.VOID ) {
+                            setu("$_", ret);
+                            setu("$"+(++idx%10), ret);
+                            if ( getShowResults() ) {
+                                println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                            }
+                        } else if ( getShowResults() ) {
+                            println("--> void");
+                        }
                     }
                 }
             } catch (ParseException e) {
