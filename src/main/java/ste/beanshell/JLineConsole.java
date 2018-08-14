@@ -15,7 +15,6 @@
  */
 package ste.beanshell;
 
-import bsh.BshConsoleInterpreter;
 import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
 import static bsh.InterpreterEvent.BUSY;
@@ -45,7 +44,7 @@ public class JLineConsole implements ConsoleInterface {
     public PipedWriter pipe = null;
 
     private Reader in = null;
-    private Future runningTask = null;
+    private List<Future> tasks = new ArrayList<>();
 
     public JLineConsole(BshLineReader reader) throws IOException {
         this.lineReader = reader;
@@ -58,14 +57,14 @@ public class JLineConsole implements ConsoleInterface {
     public void on(InterpreterEvent e) {
         if (READY.equals(e.type)) {
             status(READY);
-            lineReader.setPrompt(getBshPrompt(e.source));
+            lineReader.setPrompt((String)e.data);
             lineReader.redisplay();
         } else if (BUSY.equals(e.type)) {
-            runningTask = (Future)e.data;
+            tasks.add((Future)e.data);
             status(BUSY);
         } else if (DONE.equals(e.type)) {
-            runningTask = null;
-            status("");
+            tasks.remove((Future)e.data);
+            status(READY);
         }
     }
 
@@ -79,16 +78,23 @@ public class JLineConsole implements ConsoleInterface {
             )
         );
 
-        String statusLine = msg + "\t| ";
-        if ((runningTask != null) && !runningTask.isDone()) {
-            statusLine +=
-                new AttributedString(
-                    " T" + runningTask.hashCode() + " ",
-                    AttributedStyle.INVERSE.foreground(2).background(AttributedStyle.WHITE)
-                ).toAnsi();
+        String statusLine = new String(msg + "\t| ");
+        StringBuilder tasksString = new StringBuilder();
+        for(Future f: tasks) {
+            if (!f.isDone()) {
+                tasksString.append(" T" + f.hashCode() + " ");
+            }
         }
-        lines.add(new AttributedString(statusLine));
 
+        lines.add(
+            new AttributedString(
+                statusLine +
+                new AttributedString(
+                    tasksString.toString(),
+                    AttributedStyle.INVERSE.foreground(2).background(AttributedStyle.WHITE)
+                ).toAnsi()
+            )
+        );
         status.update(lines);
         status.redraw();
     }
@@ -127,12 +133,4 @@ public class JLineConsole implements ConsoleInterface {
 
     // --------------------------------------------------------- private methods
 
-    private String getBshPrompt(BshConsoleInterpreter bsh) {
-        try {
-            return (String)bsh.eval("getBshPrompt()");
-        } catch ( Exception e ) {
-            return "bsh % ";
-        }
-
-    }
 }

@@ -17,7 +17,6 @@ package bsh;
 
 import static bsh.Interpreter.VERSION;
 import static bsh.InterpreterEvent.BUSY;
-import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;
 import bsh.classpath.BshClassPath;
 import bsh.classpath.EmptyMappingFeedback;
@@ -26,9 +25,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PipedWriter;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import org.jline.reader.EndOfFileException;
@@ -38,7 +35,9 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
 import ste.beanshell.BshCompleter;
+import ste.beanshell.BshNodeExecutor;
 import ste.beanshell.JLineConsole;
+import ste.beanshell.NodeFuture;
 import ste.beanshell.jline.BshLineReader;
 import ste.beanshell.jline.BshLineReaderBuilder;
 import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
@@ -54,8 +53,8 @@ public class BshConsoleInterpreter extends Interpreter {
     protected boolean discard = false;
     protected boolean waitForTask = true;
 
-    ExecutorService executor = Executors.newCachedThreadPool();
-    Future will = null;
+    BshNodeExecutor executor = null;
+    NodeFuture will = null;
 
     static {
         BshClassPath.addMappingFeedback(new EmptyMappingFeedback());
@@ -97,6 +96,8 @@ public class BshConsoleInterpreter extends Interpreter {
             //
             return;
         }
+
+        executor = new BshNodeExecutor(jline);
 
         Thread bshThread = new Thread(this);
         bshThread.setDaemon(true);
@@ -163,7 +164,7 @@ public class BshConsoleInterpreter extends Interpreter {
         while (!Thread.interrupted()) {
             boolean eof = false;
             try {
-                jline.on(new InterpreterEvent(THIS, READY));
+                jline.on(new InterpreterEvent(READY, getBshPrompt()));
                 eof = parser.Line();
                 if (!discard && (parser.jjtree.nodeArity() > 0)) // number of child nodes
                 {
@@ -176,23 +177,26 @@ public class BshConsoleInterpreter extends Interpreter {
                     final CallStack CURRENT_CURRENT_STACK = callstack;
                     Object ret = null;
                     waitForTask = true;
-                    will = executor.submit(new Callable() {
+                    will = (NodeFuture)executor.submit(new Callable() {
                         @Override
                         public Object call() throws Exception {
                             return node.eval(CURRENT_CURRENT_STACK, THIS);
                         }
                     });
 
-                    jline.on(new InterpreterEvent(THIS, BUSY, will));
+                    jline.on(new InterpreterEvent(BUSY, will));
                     do {
                         try {
                             ret = will.get(25, TimeUnit.MILLISECONDS);
-                            jline.on(new InterpreterEvent(THIS, DONE, will));
                         } catch (TimeoutException c) {
                             if (waitForTask) {
                                 continue;
                             }
                             callstack = new CallStack(globalNameSpace);
+                        } catch(InterruptedException | CancellationException x) {
+                            //
+                            // it will break at the end...
+                            //
                         } catch (Throwable t) {
                             if (t.getCause() instanceof EvalError) {
                                 throw (EvalError)t.getCause();
@@ -203,7 +207,7 @@ public class BshConsoleInterpreter extends Interpreter {
                         break;
                     } while (!will.isDone());
 
-                    if (waitForTask) {
+                    if (waitForTask && !will.isCancelled()) {
                         // sanity check during development
                         if (callstack.depth() > 1) {
                             throw new InterpreterError(
@@ -268,6 +272,15 @@ public class BshConsoleInterpreter extends Interpreter {
     // ------------------------------------------------------- protected methods
 
     // --------------------------------------------------------- private methods
+
+    private String getBshPrompt() {
+        try {
+            return (String)eval("getBshPrompt()");
+        } catch ( Exception e ) {
+            return "bsh % ";
+        }
+
+    }
 
     /**
      *

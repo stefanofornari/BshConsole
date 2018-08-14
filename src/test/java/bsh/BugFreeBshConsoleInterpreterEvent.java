@@ -60,7 +60,9 @@ public class BugFreeBshConsoleInterpreterEvent {
         });
 
         then(events.get(0).type).isEqualTo(READY);
-        then(events.get(0).source).isSameAs(bsh);
+        then(events.get(0).data).isSameAs("\u001b[34;1mbsh #\u001b[0m ");
+
+        bsh.close();
     }
 
     @Test
@@ -72,10 +74,13 @@ public class BugFreeBshConsoleInterpreterEvent {
         bsh.jline = new JLineConsole(bsh.jline.lineReader) {
             @Override
             public void on(InterpreterEvent e) {
+                System.out.println(e.type + " " + e.data);
                 events.add(e);
             }
         };
-        bsh.setConsole(bsh.jline);  // TODO: to be removed when BshConsoleInterpreter won't inherit
+        // TODO: to be removed when BshConsoleInterpreter won't inherit
+        bsh.setConsole(bsh.jline);
+        // ----
 
         new Thread(new Runnable() {
             @Override
@@ -101,15 +106,26 @@ public class BugFreeBshConsoleInterpreterEvent {
         });
 
         then(events.get(0).type).isEqualTo(READY);
+        then(events.get(0).data).isEqualTo("\u001b[34;1mbsh #\u001b[0m ");
         then(events.get(1).type).isEqualTo(BUSY);
         then(events.get(1).data).isNotNull().isInstanceOf(Future.class);
-        then(events.get(2).type).isEqualTo(DONE);
-        then(events.get(2).data).isSameAs(events.get(1).data);
-        then(events.get(3).type).isEqualTo(READY);
 
-        for (int i=0; i<3; ++i) {
-            then(events.get(i).source).isSameAs(bsh);
+        //
+        // depending on teh execution, the order of the 3rd and 4th events is
+        // unknown
+        //
+        if (events.get(2).type.equals(READY)) {
+            then(events.get(2).data).isEqualTo("\u001b[34;1mbsh #\u001b[0m ");
+            then(events.get(3).type).isEqualTo(DONE);
+            then(events.get(3).data).isNotNull().isInstanceOf(Future.class);
+        } else {
+            then(events.get(2).type).isEqualTo(DONE);
+            then(events.get(2).data).isNotNull().isInstanceOf(Future.class);
+            then(events.get(3).type).isEqualTo(READY);
+            then(events.get(3).data).isEqualTo("\u001b[34;1mbsh #\u001b[0m ");
         }
+
+        bsh.close();
     }
 
     // --------------------------------------------------------- private methods

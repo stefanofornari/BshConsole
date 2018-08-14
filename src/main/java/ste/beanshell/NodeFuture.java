@@ -13,27 +13,31 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package bsh;
+package ste.beanshell;
+
+import bsh.InterpreterEvent;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 /**
  *
-
+ * @param <T> return value type
  */
-public class InterpreterEvent {
+public class NodeFuture<T> extends FutureTask<T> {
 
-    public static final String READY = "READY";
-    public static final String BUSY  = "BUSY" ;
-    public static final String DONE  = "DONE" ;
+    final private JLineConsole console;
 
-    public String type;
-    public Object data;
-
-    public InterpreterEvent(String type, Object data) {
-        this.type = type;
-        this.data = data;
+    public NodeFuture(Callable<T> callable, JLineConsole console) {
+        super(callable);
+        if (console == null) {
+            throw new NullPointerException("console can not be null");
+        }
+        this.console = console;
     }
 
-    public InterpreterEvent(String type) {
-        this(type, null);
+    @Override
+    protected void done() {
+        console.on(new InterpreterEvent("DONE", this));
     }
-};
+
+}

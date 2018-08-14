@@ -91,13 +91,11 @@ public class BugFreeJLineConsole extends BugFreeCLI {
 
         JLineConsole console = new JLineConsole(r);
 
-        console.lineReader.setPrompt("abc> ");
-        console.on(new InterpreterEvent(null, READY));
-        H.thenBufferIs(r, "abc> ", new TestBuffer("abc> "));
+        console.on(new InterpreterEvent(READY, "abc> "));
+        then(r.getPrompt().toString()).isEqualTo("abc> ");
 
-        console.lineReader.setPrompt("cde# ");
-        console.on(new InterpreterEvent(null, READY));
-        H.thenBufferIs(r, "cde# ", new TestBuffer("cde# "));
+        console.on(new InterpreterEvent(READY, "cde# "));
+        then(r.getPrompt().toString()).isEqualTo("cde# ");
     }
 
     @Test
@@ -111,20 +109,71 @@ public class BugFreeJLineConsole extends BugFreeCLI {
         ByteArrayOutputStream out = (ByteArrayOutputStream)r.getTerminal().output();
 
         JLineConsole console = new JLineConsole(r);
-        console.on(new InterpreterEvent(null, READY));
+        console.on(new InterpreterEvent(READY));
         then(out.toString()).contains(StringUtils.repeat('-', 80)).contains("READY");
         out.reset();
 
         Future f = new CompletableFuture();
-        console.on(new InterpreterEvent(null, BUSY, f));
+        console.on(new InterpreterEvent(BUSY, f));
         then(out.toString())
             .contains(StringUtils.repeat('-', 80)).contains("BUSY").contains("T" + f.hashCode());
+        f.cancel(true); out.reset();
+
+        console.on(new InterpreterEvent(DONE, f));
+        then(out.toString())
+            .contains(StringUtils.repeat('-', 80)).contains(READY).doesNotContain("T" + f.hashCode());
+    }
+
+    @Test
+    public void status_for_start_and_ending_of_tasks() throws Exception {
+        final JLineHelper H = new JLineHelper();
+        TestLineReader r = H.givenReader();
+        Status status = ((DumbTerminal)r.getTerminal()).getStatus();
+        PrivateAccess.setInstanceValue(status, "supported", true);
+        status.resize();
+
+        ByteArrayOutputStream out = (ByteArrayOutputStream)r.getTerminal().output();
+
+        JLineConsole console = new JLineConsole(r);
+
+        Future f1 = new CompletableFuture();
+        console.on(new InterpreterEvent(BUSY, f1));
+        then(out.toString()).contains("BUSY").contains("T" + f1.hashCode());
         out.reset();
 
-        console.on(new InterpreterEvent(null, DONE, f));
+        Future f2 = new CompletableFuture();
+        console.on(new InterpreterEvent(BUSY, f2));
         then(out.toString())
-            .contains(StringUtils.repeat('-', 80)).doesNotContain("T" + f.hashCode());
+            .contains("T" + f1.hashCode())
+            .contains("T" + f2.hashCode());
 
+        f2.cancel(true); out.reset();
+        console.on(new InterpreterEvent(DONE));
+        then(out.toString())
+            .contains("T" + f1.hashCode())
+            .doesNotContain("T" + f2.hashCode());
+
+        out.reset();
+        Future f3 = new CompletableFuture();
+        console.on(new InterpreterEvent(BUSY, f3));
+        then(out.toString())
+            .contains("T" + f1.hashCode())
+            .doesNotContain("T" + f2.hashCode())
+            .contains("T" + f3.hashCode());
+
+        f1.cancel(true); out.reset();
+        console.on(new InterpreterEvent(DONE));
+        then(out.toString())
+            .doesNotContain("T" + f1.hashCode())
+            .doesNotContain("T" + f2.hashCode())
+            .contains("T" + f3.hashCode());
+
+        f3.cancel(true); out.reset();
+        console.on(new InterpreterEvent(DONE));
+        then(out.toString())
+            .doesNotContain("T" + f1.hashCode())
+            .doesNotContain("T" + f2.hashCode())
+            .doesNotContain("T" + f3.hashCode());
     }
 
 }
