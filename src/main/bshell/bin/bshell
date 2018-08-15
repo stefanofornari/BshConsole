@@ -18,7 +18,7 @@ home=$(dirname "$scriptdir")
 # command in the path is used.
 #
 set_java
-set_classpath "$home/lib"
+set_classpath "$home/lib" "bsh-console"
 
 cd "$home"
 

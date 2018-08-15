@@ -22,11 +22,26 @@ set_java() {
   fi
 }
 
+#
+# Parameters:
+#
+# 1. directory to scan for jars
+# 2. main artifact prefix
+#
 set_classpath() {
   # Setting classpath
-  export CLASSPATH="$CLASSPATH":"$1"
   cd "$1"
-  for jarfile in *.jar; do export CLASSPATH="$CLASSPATH":"$1/$jarfile"; done
+  for jarfile in *.jar
+  do
+    if [ "${jarfile#$2}" != "$jarfile" ]
+    then
+      MAINJAR=$jarfile;
+    else
+      CP="$1/$jarfile":$CP;
+    fi
+  done
+
+  export CLASSPATH=$1/$MAINJAR:$CLASSPATH:$CP
 }
 
 #
