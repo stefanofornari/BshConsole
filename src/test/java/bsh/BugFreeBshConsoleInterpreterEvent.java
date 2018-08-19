@@ -21,7 +21,6 @@ import static bsh.InterpreterEvent.READY;
 import java.util.ArrayList;
 import java.util.concurrent.Future;
 import static org.assertj.core.api.BDDAssertions.then;
-import org.junit.Test;
 import ste.beanshell.JLineConsole;
 import ste.xtest.concurrent.Condition;
 import ste.xtest.concurrent.WaitFor;
@@ -32,25 +31,25 @@ import ste.xtest.concurrent.WaitFor;
  */
 public class BugFreeBshConsoleInterpreterEvent {
 
-    @Test
     public void ready_status() throws Exception {
         BshConsoleInterpreter bsh = new BshConsoleInterpreter();
         bsh.consoleInit();
+        JLineConsole jline = (JLineConsole)bsh.console;
 
         final ArrayList<InterpreterEvent> events = new ArrayList<>();
-        bsh.jline = new JLineConsole(bsh.jline.lineReader) {
+        bsh.console = new JLineConsole(jline.lineReader) {
             @Override
             public void on(InterpreterEvent e) {
                 events.add(e);
             }
         };
 
-        new Thread(new Runnable() {
+        Thread T = new Thread(new Runnable() {
             @Override
             public void run() {
                 bsh.consoleStart();
             }
-        }).start();
+        }); T.start();
 
         new WaitFor(1000, new Condition() {
             @Override
@@ -62,32 +61,30 @@ public class BugFreeBshConsoleInterpreterEvent {
         then(events.get(0).type).isEqualTo(READY);
         then(events.get(0).data).isSameAs("\u001b[34;1mbsh #\u001b[0m ");
 
-        bsh.close();
+        T.interrupt(); bsh.close();
     }
 
-    @Test
     public void busy_status() throws Exception {
         BshConsoleInterpreter bsh = new BshConsoleInterpreter();
         bsh.consoleInit();
+        JLineConsole jline = (JLineConsole)bsh.console;
 
         final ArrayList<InterpreterEvent> events = new ArrayList<>();
-        bsh.jline = new JLineConsole(bsh.jline.lineReader) {
+        bsh.console = new JLineConsole(jline.lineReader) {
             @Override
             public void on(InterpreterEvent e) {
                 System.out.println(e.type + " " + e.data);
                 events.add(e);
             }
         };
-        // TODO: to be removed when BshConsoleInterpreter won't inherit
-        bsh.setConsole(bsh.jline);
         // ----
 
-        new Thread(new Runnable() {
+        Thread T = new Thread(new Runnable() {
             @Override
             public void run() {
                 bsh.consoleStart();
             }
-        }).start();
+        }); T.start();
 
         new WaitFor(1000, new Condition() {
             @Override
@@ -96,7 +93,7 @@ public class BugFreeBshConsoleInterpreterEvent {
             }
         });
 
-        bsh.jline.pipe.write("a=0;\n"); bsh.jline.pipe.flush();
+        jline.pipe.write("a=0;\n"); jline.pipe.flush();
 
         new WaitFor(2500, new Condition() {
             @Override
@@ -125,7 +122,7 @@ public class BugFreeBshConsoleInterpreterEvent {
             then(events.get(3).data).isEqualTo("\u001b[34;1mbsh #\u001b[0m ");
         }
 
-        bsh.close();
+        T.interrupt(); bsh.close();
     }
 
     // --------------------------------------------------------- private methods

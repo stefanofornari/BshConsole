@@ -166,6 +166,7 @@
                     <encoding>UTF-8</encoding>
                     <skip>false</skip>
                     <failOnError>false</failOnError>
+                    <excludePackageNames>bsh</excludePackageNames>
                 </configuration>
                 <executions>
                     <execution>

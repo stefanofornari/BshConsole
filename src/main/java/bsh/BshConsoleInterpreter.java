@@ -45,10 +45,11 @@ import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
 /**
  * TODO: remove dependency on Interpreter
  */
-public class BshConsoleInterpreter extends Interpreter {
+public class BshConsoleInterpreter extends Interpreter implements Runnable {
 
     public boolean DEBUG = false;  // workaround for new bewanshell DEBUG... to be removed
-    public JLineConsole jline;  // TODO: to be removed with the dependency on Interpreter
+
+    private Thread bshThread = null;
 
     protected boolean discard = false;
     protected boolean waitForTask = true;
@@ -74,17 +75,18 @@ public class BshConsoleInterpreter extends Interpreter {
     }
 
     public void consoleInit() {
+        JLineConsole jline = null;
         try {
             jline = new JLineConsole(buildLineReader());
+            setConsole(jline);
             jline.lineReader.getTerminal().handle(Terminal.Signal.TSTP, new Terminal.SignalHandler() {
                 @Override
                 public void handle(Terminal.Signal signal) {
                     waitForTask = false;
                 }
             });
-            setConsole(jline);
         } catch (Exception x) {
-            error("Unable to create the line reader... closing.");
+            jline.error("Unable to create the line reader... closing.");
             x.printStackTrace();
         }
     }
@@ -96,15 +98,14 @@ public class BshConsoleInterpreter extends Interpreter {
             //
             return;
         }
+        executor = new BshNodeExecutor((JLineConsole)console); // TODO: console may be replaced, this is buggy!!!
 
-        executor = new BshNodeExecutor(jline);
-
-        Thread bshThread = new Thread(this);
-        bshThread.setDaemon(true);
+        bshThread = new Thread(this);
         bshThread.start();
 
         String line = null;
-        while (true) {
+        while (!Thread.interrupted()) {
+            JLineConsole jline = (JLineConsole)console;
             try {
                 line = jline.lineReader.readLine();
 
@@ -124,12 +125,8 @@ public class BshConsoleInterpreter extends Interpreter {
             } catch (UserInterruptException x) {
                 cancel();
             } catch (EndOfFileException x) {
-                try {
-                    close();
-                    executor.shutdown();
-                } catch (IOException xx) {
-                    // nop
-                }
+                close();
+                executor.shutdown();
                 jline.println("See you...");
 
                 return;
@@ -143,6 +140,7 @@ public class BshConsoleInterpreter extends Interpreter {
     @Override
     public void run() {
         final BshConsoleInterpreter THIS = this;
+        final JLineConsole jline = (JLineConsole)console;
 
         /*
           We'll print our banner using eval(String) in order to
@@ -153,7 +151,7 @@ public class BshConsoleInterpreter extends Interpreter {
             try {
                 eval("printBanner();");
             } catch (EvalError e) {
-                println("BeanShell " + VERSION + " - by Pat Niemeyer (pat@pat.net)");
+                console.println("BeanShell " + VERSION + " - by Pat Niemeyer (pat@pat.net)");
             }
         }
 
@@ -161,7 +159,7 @@ public class BshConsoleInterpreter extends Interpreter {
         CallStack callstack = new CallStack(globalNameSpace);
 
         int idx = -1;
-        while (!Thread.interrupted()) {
+        while (!Thread.interrupted() && !EOF) {
             boolean eof = false;
             try {
                 jline.on(new InterpreterEvent(READY, getBshPrompt()));
@@ -222,37 +220,37 @@ public class BshConsoleInterpreter extends Interpreter {
                             setu("$_", ret);
                             setu("$"+(++idx%10), ret);
                             if ( getShowResults() ) {
-                                println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                                console.println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
                             }
                         } else if ( getShowResults() ) {
-                            println("--> void");
+                            console.println("--> void");
                         }
                     }
                 }
             } catch (ParseException e) {
                 if (!discard) {
-                    error("Parser Error: " + e.getMessage(DEBUG) + " " + parser.jjtree.nodeArity());
+                    console.error("Parser Error: " + e.getMessage(DEBUG) + " " + parser.jjtree.nodeArity());
                 }
                 if (DEBUG) {
                     e.printStackTrace();
                 }
                 parser.reInitInput(console.getIn());
             } catch (InterpreterError e) {
-                error("Internal Error: " + e.getMessage());
+                console.error("Internal Error: " + e.getMessage());
             } catch (TargetError e) {
-                error("Target Exception: " + e.getMessage() );
+                console.error("Target Exception: " + e.getMessage() );
                 if (e.inNativeCode()) {
                     e.printStackTrace(DEBUG, console.getErr());
                 }
                 setu("$_e", e.getTarget());
             } catch (EvalError e) {
-                error( "Evaluation Error: "+e.getMessage() );
+                console.error( "Evaluation Error: "+e.getMessage() );
 
                 if (DEBUG) {
                     e.printStackTrace();
                 }
             } catch (Exception e) {
-                error("Unknown error: " + e);
+                console.error("Unknown error: " + e);
                 if (DEBUG) {
                     e.printStackTrace();
                 }
@@ -267,6 +265,18 @@ public class BshConsoleInterpreter extends Interpreter {
                 will = null;
             }
         }
+    }
+
+    @Override
+    public void close() {
+        try {
+            super.close();
+        } catch (IOException x) {
+            //
+            // nbothing we can do about it...
+            //
+        }
+        bshThread.interrupt();
     }
 
     // ------------------------------------------------------- protected methods
@@ -315,16 +325,20 @@ public class BshConsoleInterpreter extends Interpreter {
      * parser.
      */
     private void cancel() {
+        JLineConsole jline = (JLineConsole)console;
+
         if ((will != null) && !will.isDone()) {
             will.cancel(true);
         } else {
-            jline.println("\n(...)\n");
+            console.println("\n(...)\n");
 
             try {
                 PipedWriter oldPipe = jline.pipe;
-                jline = new JLineConsole(jline.lineReader);
+                setConsole(jline = new JLineConsole(jline.lineReader));
+                /*
                 console.setIn(jline.getIn());
                 parser = new Parser(jline.getIn());
+                */
                 discard = true;
                 oldPipe.close();
             } catch (IOException x) {

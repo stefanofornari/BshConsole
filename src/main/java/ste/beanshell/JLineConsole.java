@@ -15,8 +15,8 @@
  */
 package ste.beanshell;
 
-import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
+import bsh.ConsoleInterface;
 import static bsh.InterpreterEvent.BUSY;
 import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;

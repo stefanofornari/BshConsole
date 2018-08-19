@@ -64,36 +64,30 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         //
         // I could not find a more reliable way...
         //
-        then(bsh.jline.lineReader.getVariable(LineReader.HISTORY_FILE)).isEqualTo(HISTORY);
+        final JLineConsole jline = (JLineConsole)bsh.console;
+        then(jline.lineReader.getVariable(LineReader.HISTORY_FILE)).isEqualTo(HISTORY);
     }
 
-    @Test(timeout=500)
+    @Test(timeout=1000)
     public void prompt_at_start() throws Exception {
         BshConsoleInterpreter bsh = new BshConsoleInterpreter();
         bsh.eval("getBshPrompt() { return \"abc> \"; };");
         bsh.consoleInit();
 
-        new Thread(new Runnable() {
+        final Thread T = new Thread(new Runnable() {
             @Override
             public void run() {
                 bsh.consoleStart();
             }
-        }).start();
+        }); T.start();
 
-        new WaitFor(500, new Condition() {
-            @Override
-            public boolean check() {
-                return (bsh.jline != null) && bsh.jline.lineReader.getPrompt().toString().equals("abc> ");
-            }
-        });
+        thenBshIsReady(bsh);
 
-        System.out.println();
+        bsh.close(); T.interrupt();
     }
 
     /**
-     * Given that setting the prompt and displaying it are on different threads,
-     * we want to make sure we read a line (i.e. display the prompt) only after
-     * beanshell is ready to accept input.
+     *
      */
     @Test
     public void discard_parsed_input_on_invalid() throws Exception {
@@ -101,20 +95,29 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         bsh.eval("getBshPrompt() { return \"abc> \"; };");
         bsh.consoleInit();
 
-        new Thread(new Runnable() {
+        final JLineConsole JLINE1 = (JLineConsole)bsh.console;
+
+        final Thread T = new Thread(new Runnable() {
             @Override
             public void run() {
                 bsh.consoleStart();
             }
-        }).start();
-        Thread.sleep(500);
+        }); T.start();
 
-        bsh.jline.pipe.write("class A {\n"); bsh.jline.pipe.flush();
+        thenBshIsReady(bsh);
 
-        bsh.jline.lineReader.getTerminal().raise(Terminal.Signal.INT); // ^C
-        Thread.sleep(100);
+        JLINE1.pipe.write("class A {\n"); JLINE1.pipe.flush();
 
-        bsh.jline.pipe.write("print(\"__done__\");"); bsh.jline.pipe.flush();
+        JLINE1.lineReader.getTerminal().raise(Terminal.Signal.INT); // ^C
+        new WaitFor(1000, new Condition() {
+            @Override
+            public boolean check() {
+                return bsh.console != JLINE1;
+            }
+        });
+        final JLineConsole JLINE2 = (JLineConsole)bsh.console;
+
+        JLINE2.pipe.write("print(\"__done__\");"); JLINE2.pipe.flush();
 
         new WaitFor(1000, new Condition() {
             @Override
@@ -124,6 +127,8 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         });
 
         then(STDERR.getLog()).doesNotContain("Parser Error");
+
+        bsh.close(); T.interrupt();
     }
 
     @Test(timeout = 1000)
@@ -132,34 +137,38 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         bsh.eval("getBshPrompt() { return \"abc> \"; };");
         bsh.consoleInit();
 
-        Thread bshThread = new Thread(new Runnable() {
+        final Thread T = new Thread(new Runnable() {
             @Override
             public void run() {
                 bsh.consoleStart();
             }
-        });
-        bshThread.start();
+        }); T.start();
+        final JLineConsole jline = (JLineConsole)bsh.console;
 
-        bsh.jline.pipe.write("Thread.sleep(5000);\n"); bsh.jline.pipe.flush();
+        jline.pipe.write("Thread.sleep(5000);\n"); jline.pipe.flush();
         new WaitFor(250, new Condition() {
             @Override
             public boolean check() {
                 return (bsh.will != null);
             }
         });
-        final JLineConsole JLINE = bsh.jline;
         final Future WILL = bsh.will;
 
         //
         // interrupting the execution shall keep the same console interface
         //
-        bsh.jline.lineReader.getTerminal().raise(Terminal.Signal.INT);  // ^C
-        Thread.sleep(100);
+        jline.lineReader.getTerminal().raise(Terminal.Signal.INT); // ^C
+        new WaitFor(250, new Condition() {
+            @Override
+            public boolean check() {
+                System.out.println("check WILL " + WILL);
+                return  WILL.isCancelled();
+            }
+        });
 
-        then(bsh.jline).isSameAs(JLINE);
-        then(WILL.isCancelled()).isTrue();
+        then(jline).isSameAs(jline);
 
-        bshThread.interrupt();
+        bsh.close(); T.interrupt();
     }
 
     @Test(timeout = 5000)
@@ -168,36 +177,36 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         bsh.eval("getBshPrompt() { return \"abc> \"; };");
         bsh.consoleInit();
 
-        Thread bshThread = new Thread(new Runnable() {
+        final Thread T = new Thread(new Runnable() {
             @Override
             public void run() {
                 bsh.consoleStart();
             }
-        });
-        bshThread.start();
+        }); T.start();
+        final JLineConsole jline = (JLineConsole)bsh.console;
 
-        bsh.jline.pipe.write("Thread.sleep(5000);\n"); bsh.jline.pipe.flush();
+        jline.pipe.write("Thread.sleep(5000);\n"); jline.pipe.flush();
         new WaitFor(1000, new Condition() {
             @Override
             public boolean check() {
                 return (bsh.will != null);
             }
         });
-        final JLineConsole JLINE = bsh.jline;
+        final JLineConsole JLINE = jline;
         final Future WILL = bsh.will;
 
         //
         // interrupting the execution shall keep the same console interface
         //
-        Thread.yield(); Thread.sleep(100);
-        bsh.jline.lineReader.getTerminal().raise(Terminal.Signal.TSTP);  // ^Z
-        Thread.yield(); Thread.sleep(100);
+        Thread.sleep(100);
+        jline.lineReader.getTerminal().raise(Terminal.Signal.TSTP);  // ^Z
+        Thread.sleep(100);
 
         //
         // The task should now be suspended, let's issue anotehr command and
         // make sure it executes...
         //
-        bsh.jline.pipe.write("s = \"hello\";"); bsh.jline.pipe.flush();
+        jline.pipe.write("s = \"hello\";"); jline.pipe.flush();
         new WaitFor(1000, new Condition() {
             @Override
             public boolean check() {
@@ -211,7 +220,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
 
         then(WILL.isCancelled()).isFalse();
 
-        bshThread.interrupt();
+        bsh.close(); T.interrupt();
     }
 
     @Test
@@ -223,4 +232,14 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
     }
 
     // --------------------------------------------------------- private methods
+
+    private void thenBshIsReady(final BshConsoleInterpreter bsh) {
+        new WaitFor(500, new Condition() {
+            @Override
+            public boolean check() {
+                final JLineConsole jline = (JLineConsole)bsh.console;
+                return (jline != null) && jline.lineReader.getPrompt().toString().equals("abc> ");
+            }
+        });
+    }
 }

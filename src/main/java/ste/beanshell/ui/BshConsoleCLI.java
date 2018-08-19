@@ -17,7 +17,7 @@ package ste.beanshell.ui;
 
 import bsh.BshConsoleInterpreter;
 import bsh.EvalError;
-import java.io.FileNotFoundException;
+import bsh.TargetError;
 import java.io.IOException;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -59,9 +59,13 @@ public class BshConsoleCLI {
         //
         if (options.initScript != null) {
             try {
-                bsh.source(options.initScript);
-            } catch (FileNotFoundException x) {
-                System.out.println("error: invalid initialization script " + x.getMessage());
+                bsh.eval("source(\"" + options.initScript + "\");");
+            } catch (TargetError x) {
+                String msg = x.getMessage();
+                if ((x.getCause() != null) && (x.getCause() instanceof IOException)) {
+                    msg = x.getCause().getMessage();
+                }
+                System.out.println("error: invalid initialization script " +msg);
                 return;
             }
         }
