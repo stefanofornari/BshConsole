@@ -11,10 +11,10 @@ import java.net.URL;
 bsh.help.source = "usage: source( filename | URL )";
 
 Object source(String filename) {
-    return (new bsh.Utils()).source(this.interpreter, this.interpreter.pathToFile(filename), this.caller.namespace);
+    return (new bsh.Utils()).source(this.interpreter, pathToFile(filename), this.caller.namespace);
 }
 
 Object source(URL url) {
-    return (new bsh.Utils()).source(this.interpreter, this.interpreter.pathToFile(url.file), this.caller.namespace);
+    return (new bsh.Utils()).source(this.interpreter, pathToFile(url.file), this.caller.namespace);
 }
 

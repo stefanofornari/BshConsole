@@ -51,7 +51,7 @@ run( String filename, Object runArgument )
     // Inherit user classpath
     this.namespace.getClassManager().setClassPath( cp );
 
-    (new bsh.Utils()).source( this.interpreter, this.interpreter.pathToFile(filename), this.namespace );
+    (new bsh.Utils()).source( this.interpreter, pathToFile(filename), this.namespace );
     return this;
 }
 

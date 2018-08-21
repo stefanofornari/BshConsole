@@ -12,7 +12,7 @@ Thread bg( String filename )
 {
     this.callerNameSpace = this.caller.namespace;
     run() {
-        (new bsh.Utils()).source(this.interpreter, this.interpreter.pathToFile(filename), callerNameSpace);
+        (new bsh.Utils()).source(this.interpreter, pathToFile(filename), callerNameSpace);
     }
 
     this.thread = new Thread( this );
