@@ -1,0 +1,19 @@
+/**
+    Create a File object corresponding to the specified file path name, taking
+    into account the bsh current working directory (bsh.cwd)
+*/
+
+bsh.help.pathToFile = "usage: File pathToFile( String )";
+
+File pathToFile( String filename ) {
+    File file = new File(filename);
+
+    // if relative, fix up to bsh.cwd
+    if ( !file.isAbsolute() ) {
+        file = new File(bsh.cwd, filename);
+    }
+
+    // The canonical file name is also absolute.
+    // No need for getAbsolutePath() here...
+    return file.getCanonicalFile();
+}
