@@ -1,3 +1,10 @@
+20180825
+--------
+- fixed issue #21 - TokenMgrException on ^C
+- improved messages on ^C, ^D, ^Z
+- added a cls() command to cler the terminal;
+- release v1.2.0
+
 20180814
 --------
 - added status bar
