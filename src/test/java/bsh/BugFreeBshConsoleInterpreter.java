@@ -87,7 +87,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
     }
 
     /**
-     *
+     * Interrupt during parsing
      */
     @Test
     public void discard_parsed_input_on_invalid() throws Exception {
@@ -127,6 +127,51 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         });
 
         then(STDERR.getLog()).doesNotContain("Parser Error");
+
+        bsh.close(); T.interrupt();
+    }
+
+    /**
+     * Interrupt during tokenization
+     */
+    @Test
+    public void discard_parsed_input_on_tokenizing() throws Exception {
+        BshConsoleInterpreter bsh = new BshConsoleInterpreter();
+        bsh.eval("getBshPrompt() { return \"abc> \"; };");
+        bsh.consoleInit();
+
+        final JLineConsole JLINE1 = (JLineConsole)bsh.console;
+
+        final Thread T = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                bsh.consoleStart();
+            }
+        }); T.start();
+
+        thenBshIsReady(bsh);
+
+        JLINE1.pipe.write("print(\"this string does not continue...\n"); JLINE1.pipe.flush();
+
+        JLINE1.lineReader.getTerminal().raise(Terminal.Signal.INT); // ^C
+        new WaitFor(1000, new Condition() {
+            @Override
+            public boolean check() {
+                return bsh.console != JLINE1;
+            }
+        });
+        final JLineConsole JLINE2 = (JLineConsole)bsh.console;
+
+        JLINE2.pipe.write("print(\"__done__\");"); JLINE2.pipe.flush();
+
+        new WaitFor(1000, new Condition() {
+            @Override
+            public boolean check() {
+                return STDOUT.getLog().contains("__done__");
+            }
+        });
+
+        then(STDERR.getLog()).doesNotContain("Lexical error");
 
         bsh.close(); T.interrupt();
     }

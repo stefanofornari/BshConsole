@@ -127,7 +127,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
             } catch (EndOfFileException x) {
                 close();
                 executor.shutdown();
-                jline.println("See you...");
+                jline.println("\n(... see you ...)\n");
 
                 return;
             } catch (IOException x) {
@@ -226,6 +226,13 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                             console.println("--> void");
                         }
                     }
+                }
+            } catch (TokenMgrException e) {
+                //
+                // we do not really need to do anything...
+                //
+                if (DEBUG) {
+                    e.printStackTrace();
                 }
             } catch (ParseException e) {
                 if (!discard) {
