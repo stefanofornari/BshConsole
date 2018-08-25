@@ -183,14 +183,26 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     });
 
                     jline.on(new InterpreterEvent(BUSY, will));
-                    do {
+                    boolean inBackground = false;
+                    while (!will.isDone()) {
+                        //
+                        // if the is a future running, let create a new stack in
+                        // so that in the case it is put in background, we have
+                        // a clean call stack
+                        //
+                        callstack = new CallStack(globalNameSpace);
                         try {
                             ret = will.get(25, TimeUnit.MILLISECONDS);
                         } catch (TimeoutException c) {
                             if (waitForTask) {
                                 continue;
+                            } else {
+                                if (!inBackground) {
+                                    println("\n(... in background ...)\n");
+                                    inBackground = true;
+                                }
                             }
-                            callstack = new CallStack(globalNameSpace);
+
                         } catch(InterruptedException | CancellationException x) {
                             //
                             // it will break at the end...
@@ -203,7 +215,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                             }
                         }
                         break;
-                    } while (!will.isDone());
+                    };
 
                     if (waitForTask && !will.isCancelled()) {
                         // sanity check during development
@@ -340,8 +352,9 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
 
         if ((will != null) && !will.isDone()) {
             will.cancel(true);
+            console.println("(... aborted ...)\n");
         } else {
-            console.println("\n(...)\n");
+            console.println("\n(... discarded ...)\n");
 
             try {
                 PipedWriter oldPipe = jline.pipe;
