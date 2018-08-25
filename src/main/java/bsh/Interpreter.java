@@ -27,7 +27,6 @@
 
 package bsh;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -249,7 +248,6 @@ public class Interpreter
         this(new Console());
         evalOnly = false;
         setu( "bsh.evalOnly", Primitive.FALSE );
-        setu( "bsh.whoami", "it's me!" );  // TODO: remove me
     }
 
     // End constructors
@@ -369,6 +367,8 @@ public class Interpreter
         Interpreter.debug("eval: nameSpace = ", nameSpace);
 
         /*
+            TODO: remove creation of new interpreter (wich BTW breaks inhertance)
+        
             Create non-interactive local interpreter for this namespace
             with source from the input stream and out/err same as
             this interpreter.
@@ -462,8 +462,6 @@ public class Interpreter
 
     /**
         Evaluate the string in this interpreter's global namespace.
-
-        TODO: move to command
     */
     public Object eval( String statements ) throws EvalError {
         Interpreter.debug("eval(String): ", statements);
@@ -472,8 +470,6 @@ public class Interpreter
 
     /**
         Evaluate the string in the specified namespace.
-
-        TODO: move to command
     */
     public Object eval( String statements, NameSpace nameSpace )
         throws EvalError
