@@ -15,6 +15,7 @@
  */
 package ste.beanshell;
 
+import bsh.BshConsoleInterpreter;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -32,21 +33,19 @@ public class BugFreeBshNodeExecutor {
     public void construction() throws Exception {
         final BshNodeExecutor E = createExecutor();
 
-        final Callable C = new Callable() {
-            @Override
-            public Object call() throws Exception {
-                return null;
-            }
-        };
-
         then(E).isInstanceOf(ThreadPoolExecutor.class);
 
         try {
             new BshNodeExecutor(null);
             fail("missing sanity check for console");
         } catch (IllegalArgumentException x) {
-            then(x).hasMessage("console can not be null");
+            then(x).hasMessage("bsh can not be null");
         }
+
+        BshConsoleInterpreter bsh = new BshConsoleInterpreter();
+        BshNodeExecutor exec = new BshNodeExecutor(bsh);
+
+        then(PrivateAccess.getInstanceValue(exec, "bsh")).isSameAs(bsh);
     }
 
     @Test
@@ -79,9 +78,9 @@ public class BugFreeBshNodeExecutor {
     // --------------------------------------------------------- private methods
 
     private BshNodeExecutor createExecutor() throws Exception {
-        final JLineHelper H = new JLineHelper();
-        final JLineConsole C = new JLineConsole(H.givenReader());
-        return new BshNodeExecutor(C);
+        final BshConsoleInterpreter bsh = new BshConsoleInterpreter();
+        bsh.setConsole(new JLineConsole(new JLineHelper().givenReader()));
+        return new BshNodeExecutor(bsh);
     }
 }
 

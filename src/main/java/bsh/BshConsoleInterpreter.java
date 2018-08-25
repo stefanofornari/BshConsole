@@ -43,7 +43,7 @@ import ste.beanshell.jline.BshLineReaderBuilder;
 import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
 
 /**
- * TODO: remove dependency on Interpreter
+ *
  */
 public class BshConsoleInterpreter extends Interpreter implements Runnable {
 
@@ -98,7 +98,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
             //
             return;
         }
-        executor = new BshNodeExecutor((JLineConsole)console); // TODO: console may be replaced, this is buggy!!!
+        executor = new BshNodeExecutor(this);
 
         bshThread = new Thread(this);
         bshThread.start();
@@ -277,6 +277,10 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
             //
         }
         bshThread.interrupt();
+    }
+
+    public JLineConsole getConsole() {
+        return (JLineConsole)console;
     }
 
     // ------------------------------------------------------- protected methods

@@ -15,6 +15,7 @@
  */
 package ste.beanshell;
 
+import bsh.BshConsoleInterpreter;
 import java.util.concurrent.Callable;
 import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.SynchronousQueue;
@@ -26,15 +27,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class BshNodeExecutor  extends ThreadPoolExecutor {
 
-    private JLineConsole console;
+    private BshConsoleInterpreter bsh;
 
-    public BshNodeExecutor(JLineConsole console) {
+    public BshNodeExecutor(BshConsoleInterpreter bsh) {
         super(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
 
-        if (console == null) {
-            throw new IllegalArgumentException("console can not be null");
+        if (bsh == null) {
+            throw new IllegalArgumentException("bsh can not be null");
         }
-        this.console = console;
+        this.bsh = bsh;
     }
 
     @Override
@@ -42,7 +43,7 @@ public class BshNodeExecutor  extends ThreadPoolExecutor {
         if (callable == null) {
             throw new IllegalArgumentException("callable can not be null");
         }
-        return new NodeFuture(callable, console);
+        return new NodeFuture(callable, bsh.getConsole());
     }
 
 }
