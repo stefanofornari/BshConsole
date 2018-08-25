@@ -13,6 +13,7 @@ The easiest way to get BshConsole is to download the distribution package from m
 - Tab starts completion suggestions looking into class path for classes or beanshell commands and variables
 - ^C discards the input during parsing and try to stop the command in execution when parsing is done and there is code running
 - ^Z send the current execution command in background so that you can keep typing new commands; an identifier of the task is displayed in the status bar until the execution is completed.
+- In BshConsole the BeanShell variable bsh.propmt does not control the prompt anymore, use getBshPrompt() instead.
 
 
 # Building from source
