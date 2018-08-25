@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  *
  */
-public class sourceRelative {
+public class BugFree_sourceRelative {
 
     @Test
     public void source_relative() throws Exception {
