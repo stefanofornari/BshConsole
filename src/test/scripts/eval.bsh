@@ -1,0 +1,8 @@
+a=6;
+b=6; // sanity check
+scope() {
+    eval("this.a=5");
+    this.b=5; // sanity check
+    return this;
+}
+s=scope();
