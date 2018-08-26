@@ -47,8 +47,6 @@ import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
  */
 public class BshConsoleInterpreter extends Interpreter implements Runnable {
 
-    public boolean DEBUG = false;  // workaround for new bewanshell DEBUG... to be removed
-
     private Thread bshThread = null;
 
     protected boolean discard = false;
@@ -168,7 +166,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                 {
                     final SimpleNode node = (SimpleNode) (parser.jjtree.rootNode());
 
-                    if (DEBUG) {
+                    if (DEBUG.get()) {
                         node.dump(">");
                     }
 
@@ -243,14 +241,14 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                 //
                 // we do not really need to do anything...
                 //
-                if (DEBUG) {
+                if (DEBUG.get()) {
                     e.printStackTrace();
                 }
             } catch (ParseException e) {
                 if (!discard) {
-                    console.error("Parser Error: " + e.getMessage(DEBUG) + " " + parser.jjtree.nodeArity());
+                    console.error("Parser Error: " + e.getMessage(DEBUG.get()) + " " + parser.jjtree.nodeArity());
                 }
-                if (DEBUG) {
+                if (DEBUG.get()) {
                     e.printStackTrace();
                 }
                 parser.reInitInput(console.getIn());
@@ -259,18 +257,18 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
             } catch (TargetError e) {
                 console.error("Target Exception: " + e.getMessage() );
                 if (e.inNativeCode()) {
-                    e.printStackTrace(DEBUG, console.getErr());
+                    e.printStackTrace(DEBUG.get(), console.getErr());
                 }
                 setu("$_e", e.getTarget());
             } catch (EvalError e) {
                 console.error( "Evaluation Error: "+e.getMessage() );
 
-                if (DEBUG) {
+                if (DEBUG.get()) {
                     e.printStackTrace();
                 }
             } catch (Exception e) {
                 console.error("Unknown error: " + e);
-                if (DEBUG) {
+                if (DEBUG.get()) {
                     e.printStackTrace();
                 }
             } finally {
