@@ -38,7 +38,7 @@ public class Utils {
     }
 
     public static String getSourceFile(CallStack callstack) {
-        final String COMPILED_CODE = "<unknown source>";
+        final String COMPILED_CODE = "<input>";
         if (callstack == null) {
             return COMPILED_CODE;
         }

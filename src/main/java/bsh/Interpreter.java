@@ -210,35 +210,10 @@ public class Interpreter
 
     /**
         Construct a new interactive interpreter attached to the specified
-        console using the specified parent namespace and parent interpreter.
-    */
-    public Interpreter(ConsoleInterface console, NameSpace globalNameSpace, Interpreter parent) {
-        this( console, true, globalNameSpace, parent,
-            null == parent ? null : parent.getSourceFileInfo() );
-    }
-
-    /**
-        Construct a new interactive interpreter attached to the specified
-        console using the specified parent interpreter assumes interpreter namesepace.
-    */
-    public Interpreter(ConsoleInterface console, Interpreter parent) {
-        this( console, parent.getNameSpace(), parent );
-    }
-
-    /**
-        Construct a new interactive interpreter attached to the specified
-        console using the specified parent namespace.
-    */
-    public Interpreter(ConsoleInterface console, NameSpace globalNameSpace) {
-        this( console, globalNameSpace, null );
-    }
-
-    /**
-        Construct a new interactive interpreter attached to the specified
         console.
     */
     public Interpreter(ConsoleInterface console) {
-        this( console, null, null );
+        this(console, true, null, null, null);
     }
 
     /**
@@ -812,21 +787,6 @@ public class Interpreter
         } catch ( Throwable e ) {
             System.err.println("Could not init static(3):"+e);
         }
-    }
-
-    /**
-        Specify the source of the text from which this interpreter is reading.
-        Note: there is a difference between what file the interrpeter is
-        sourcing and from what file a method was originally parsed.  One
-        file may call a method sourced from another file.  See SimpleNode
-        for origination file info.
-        @see bsh.SimpleNode#getSourceFile()
-    */
-    public String getSourceFileInfo() {
-        if ( sourceFileInfo != null )
-            return sourceFileInfo;
-        else
-            return "<unknown source>";
     }
 
     /**

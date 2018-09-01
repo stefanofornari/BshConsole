@@ -33,7 +33,7 @@ public class BugFree_getSourceInfo {
 
         String source = getSourceInfo.invoke(bsh, null);
 
-        then(source).isEqualTo("<compiled code>");
+        then(source).isEqualTo("<input>");
     }
 
     @Test
@@ -42,7 +42,7 @@ public class BugFree_getSourceInfo {
 
         CallStack stack = new CallStack(bsh.getNameSpace());
         String source = getSourceInfo.invoke(bsh, stack);
-        then(source).isEqualTo("<compiled code>");
+        then(source).isEqualTo("<input>");
     }
 
     @Test
