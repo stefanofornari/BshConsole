@@ -1,0 +1,4 @@
+//
+// cal the default getSourceFileInfo() which should fall back to getSourceInfo()
+
+getSourceFileInfo();

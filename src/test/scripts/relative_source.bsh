@@ -1,1 +1,1 @@
-sourceRelative("../../../src/test/scripts/source.bsh");
+sourceRelative("source.bsh");

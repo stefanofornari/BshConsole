@@ -12,7 +12,6 @@ File pathToFile( String filename ) {
     if ( !file.isAbsolute() ) {
         file = new File(bsh.cwd, filename);
     }
-
     // The canonical file name is also absolute.
     // No need for getAbsolutePath() here...
     return file.getCanonicalFile();

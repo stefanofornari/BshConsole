@@ -184,7 +184,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     boolean inBackground = false;
                     while (!will.isDone()) {
                         //
-                        // if the is a future running, let create a new stack in
+                        // if the is a future running, let's create a new stack
                         // so that in the case it is put in background, we have
                         // a clean call stack
                         //

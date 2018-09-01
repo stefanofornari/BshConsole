@@ -15,8 +15,8 @@
 
 sourceRelative( String file )
 {
-    this.dir=dirname( getSourceFileInfo() );
-    this.path=pathToFile( dir + File.separator + file ).getAbsoluteFile();
+    this.dir = dirname(getSourceInfo());
+    this.path = pathToFile( dir + File.separator + file ).getAbsoluteFile();
     return (new bsh.Utils()).source(this.interpreter, path, this.caller.namespace );
 }
 

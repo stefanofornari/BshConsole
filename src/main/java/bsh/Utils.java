@@ -36,4 +36,16 @@ public class Utils {
             r.close();
         }
     }
+
+    public static String getSourceFile(CallStack callstack) {
+        final String COMPILED_CODE = "<unknown source>";
+        if (callstack == null) {
+            return COMPILED_CODE;
+        }
+
+        if (callstack.node == null) {
+            return COMPILED_CODE;
+        }
+        return callstack.node.getSourceFile();
+    }
 }

@@ -345,6 +345,7 @@ public class Interpreter
         @param sourceFileInfo is for information purposes only.  It is used to
         display error messages (and in the future may be made available to
         the script).
+        *
         @throws EvalError on script problems
         @throws TargetError on unhandled exceptions from the script
     */
@@ -358,97 +359,83 @@ public class Interpreter
     exception handling.
     */
 
-    public Object eval(
-        Reader in, NameSpace nameSpace, String sourceFileInfo
-            /*, CallStack callstack */ )
+    public Object eval(Reader in, NameSpace nameSpace, String sourceFileInfo)
         throws EvalError
     {
         Object retVal = null;
         Interpreter.debug("eval: nameSpace = ", nameSpace);
 
-        /*
-            TODO: remove creation of new interpreter (wich BTW breaks inhertance)
-        
-            Create non-interactive local interpreter for this namespace
-            with source from the input stream and out/err same as
-            this interpreter.
-        */
-        try (Interpreter localInterpreter = new Interpreter(
-                new Console(in, console.getOut(), console.getErr()), false, nameSpace, this, sourceFileInfo  )) {
-            CallStack callstack = new CallStack( nameSpace );
+        CallStack callstack = new CallStack(nameSpace);
+        Parser localParser = new Parser(in);
 
-            SimpleNode node = null;
-            boolean eof = false;
-            while( !eof )
+        boolean eof = false;
+        while( !eof )
+        {
+            try
             {
-                try
-                {
-                    eof = localInterpreter.readLine();
-                    if (localInterpreter.get_jjtree().nodeArity() > 0)
-                    {
-                        node = (SimpleNode)localInterpreter.get_jjtree().rootNode();
-                        // nodes remember from where they were sourced
-                        node.setSourceFile( sourceFileInfo );
+                eof = localParser.Line();
+                if (localParser.jjtree.nodeArity() > 0) {
+                    callstack.node = (SimpleNode)localParser.jjtree.rootNode();
+                    // nodes remember from where they were sourced
+                    callstack.node.setSourceFile( sourceFileInfo );
 
-                        if ( TRACE )
-                            console.println( "// " +node.getText() );
-
-                        retVal = node.eval( callstack, localInterpreter );
-
-                        // sanity check during development
-                        if ( callstack.depth() > 1 )
-                            throw new InterpreterError(
-                                "Callstack growing: "+callstack);
-
-                        if ( retVal instanceof ReturnControl ) {
-                            retVal = ((ReturnControl)retVal).value;
-                            break; // non-interactive, return control now
-                        }
+                    if (TRACE) {
+                        console.println( "// " + callstack.node.getText() );
                     }
-                } catch(ParseException e) {
-                    if ( DEBUG.get() )
-                        // show extra "expecting..." info
-                        console.error( e.getMessage(DEBUG.get()) );
 
-                    // add the source file info and throw again
-                    e.setErrorSourceFile( sourceFileInfo );
-                    throw e;
-                } catch ( InterpreterError e ) {
-                    throw new EvalError(
-                        "Sourced file: "+sourceFileInfo+" internal Error: "
-                        + e.getMessage(), node, callstack, e);
-                } catch ( TargetError e ) {
-                    // failsafe, set the Line as the origin of the error.
-                    if ( e.getNode()==null )
-                        e.setNode( node );
-                    e.reThrow("Sourced file: "+sourceFileInfo);
-                } catch ( EvalError e) {
-                    if ( DEBUG.get())
-                        e.printStackTrace();
-                    // failsafe, set the Line as the origin of the error.
-                    if ( e.getNode()==null )
-                        e.setNode( node );
-                    e.reThrow( "Sourced file: "+sourceFileInfo );
-                } catch ( Exception e) {
-                    if ( DEBUG.get())
-                        e.printStackTrace();
-                    throw new EvalError(
-                        "Sourced file: "+sourceFileInfo+" unknown error: "
-                        + e.getMessage(), node, callstack, e);
-                } finally {
-                    localInterpreter.get_jjtree().reset();
+                    retVal = callstack.node.eval(callstack, this);
 
-                    // reinit the callstack
+                    // sanity check during development
                     if ( callstack.depth() > 1 ) {
-                        callstack.clear();
-                        callstack.push( nameSpace );
+                        throw new InterpreterError("Callstack growing: "+callstack);
+                    }
+
+                    if ( retVal instanceof ReturnControl ) {
+                        retVal = ((ReturnControl)retVal).value;
+                        break; // non-interactive, return control now
                     }
                 }
+            } catch(ParseException e) {
+                if ( DEBUG.get() )
+                    // show extra "expecting..." info
+                    console.error( e.getMessage(DEBUG.get()) );
+
+                // add the source file info and throw again
+                e.setErrorSourceFile( sourceFileInfo );
+                throw e;
+            } catch ( InterpreterError e ) {
+                throw new EvalError(
+                    "Sourced file: "+sourceFileInfo+" internal Error: "
+                    + e.getMessage(), callstack.node, callstack, e);
+            } catch ( TargetError e ) {
+                // failsafe, set the Line as the origin of the error.
+                if ( e.getNode()==null )
+                    e.setNode(callstack.node);
+                e.reThrow("Sourced file: "+sourceFileInfo);
+            } catch ( EvalError e) {
+                if ( DEBUG.get())
+                    e.printStackTrace();
+                // failsafe, set the Line as the origin of the error.
+                if ( e.getNode()==null )
+                    e.setNode( callstack.node );
+                e.reThrow( "Sourced file: "+sourceFileInfo );
+            } catch ( Exception e) {
+                if ( DEBUG.get())
+                    e.printStackTrace();
+                throw new EvalError(
+                    "Sourced file: "+sourceFileInfo+" unknown error: "
+                    + e.getMessage(), callstack.node, callstack, e);
+            } finally {
+                localParser.jjtree.reset();
+
+                // reinit the callstack
+                if ( callstack.depth() > 1 ) {
+                    callstack.clear();
+                    callstack.push( nameSpace );
+                }
             }
-        } catch (IOException ioe) {
-            throw new EvalError("Sourced file: "+sourceFileInfo+" "
-                    + ioe.toString(), null, null, ioe);
         }
+
         return Primitive.unwrap( retVal );
     }
 
@@ -688,10 +675,6 @@ public class Interpreter
     }
 
     /*  Methods for interacting with Parser */
-
-    private JJTParserState get_jjtree() {
-        return parser.jjtree;
-    }
 
     /** Blocking call to read a line from the parser.
      * @return true on EOF or false
@@ -991,6 +974,5 @@ public class Interpreter
             println( "// Error: " + o );
         }
     }
-
 }
 
