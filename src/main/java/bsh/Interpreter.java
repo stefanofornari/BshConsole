@@ -142,9 +142,6 @@ public class Interpreter
     /** If this interpeter is a child of another, the parent */
     protected Interpreter parent;
 
-    /** The name of the file or other source that this interpreter is reading */
-    protected String sourceFileInfo;
-
     protected boolean
         evalOnly,       // Interpreter has no input stream, use eval() only
         interactive;    // Interpreter has a user, print prompts, etc.
@@ -192,8 +189,6 @@ public class Interpreter
         this.parent = parent;
         if ( parent != null )
             setStrictJava( parent.getStrictJava() );
-
-        this.sourceFileInfo = sourceFileInfo;
 
         if ( namespace == null ) {
             BshClassManager bcm = BshClassManager.createClassManager( this );
@@ -419,7 +414,7 @@ public class Interpreter
     */
     public Object eval( Reader in ) throws EvalError
     {
-        return eval( in, globalNameSpace, null == sourceFileInfo ? "eval stream" : sourceFileInfo );
+        return eval( in, globalNameSpace, "input");
     }
 
     /**
