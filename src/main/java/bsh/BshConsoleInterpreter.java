@@ -15,7 +15,6 @@
  */
 package bsh;
 
-import static bsh.Interpreter.VERSION;
 import static bsh.InterpreterEvent.BUSY;
 import static bsh.InterpreterEvent.READY;
 import bsh.classpath.BshClassPath;
@@ -139,19 +138,6 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
     public void run() {
         final BshConsoleInterpreter THIS = this;
         final JLineConsole jline = (JLineConsole)console;
-
-        /*
-          We'll print our banner using eval(String) in order to
-          exercise the parser and get the basic expression classes loaded...
-          This ameliorates the delay after typing the first statement.
-         */
-        if (null == getParent()) {
-            try {
-                eval("printBanner();");
-            } catch (EvalError e) {
-                console.println("BeanShell " + VERSION + " - by Pat Niemeyer (pat@pat.net)");
-            }
-        }
 
         // init the callstack.
         CallStack callstack = new CallStack(globalNameSpace);

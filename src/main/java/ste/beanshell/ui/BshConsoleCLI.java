@@ -70,11 +70,17 @@ public class BshConsoleCLI {
             }
         }
 
+        bsh.consoleInit();
+        try {
+            bsh.eval("printBanner();");
+        } catch (EvalError e) {
+            //
+            // if printBanner() is not available, we have nothing to do
+            //
+        }
         if (options.welcomeOnly) {
             return;
         }
-
-        bsh.consoleInit();
         bsh.consoleStart();
     }
 
