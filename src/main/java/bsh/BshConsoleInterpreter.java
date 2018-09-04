@@ -102,7 +102,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
 
         String line = null;
         while (!Thread.interrupted()) {
-            JLineConsole jline = (JLineConsole)console;
+            JLineConsole jline = getConsole();
             try {
                 line = jline.lineReader.readLine();
 
@@ -122,6 +122,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
             } catch (UserInterruptException x) {
                 cancel();
             } catch (EndOfFileException x) {
+                bshThread.interrupt();
                 close();
                 executor.shutdown();
                 jline.println("\n(... see you ...)\n");
@@ -137,19 +138,18 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
     @Override
     public void run() {
         final BshConsoleInterpreter THIS = this;
-        final JLineConsole jline = (JLineConsole)console;
 
         // init the callstack.
         CallStack callstack = new CallStack(globalNameSpace);
+        Parser parser = new Parser(getConsole().getIn());
 
         int idx = -1;
-        while (!Thread.interrupted() && !EOF) {
-            boolean eof = false;
+        boolean eof = false;
+        while (!Thread.interrupted() && !eof) {
+            getConsole().on(new InterpreterEvent(READY, getBshPrompt()));
             try {
-                jline.on(new InterpreterEvent(READY, getBshPrompt()));
                 eof = parser.Line();
-                if (!discard && (parser.jjtree.nodeArity() > 0)) // number of child nodes
-                {
+                if (!discard && (parser.jjtree.nodeArity() > 0)) {
                     final SimpleNode node = (SimpleNode) (parser.jjtree.rootNode());
 
                     if (DEBUG.get()) {
@@ -166,7 +166,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                         }
                     });
 
-                    jline.on(new InterpreterEvent(BUSY, will));
+                    getConsole().on(new InterpreterEvent(BUSY, will));
                     boolean inBackground = false;
                     while (!will.isDone()) {
                         //
@@ -258,13 +258,17 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     e.printStackTrace();
                 }
             } finally {
-                parser.jjtree.reset();
+                if (discard) {
+                    parser = new Parser(getConsole().getIn());
+                } else {
+                    parser.jjtree.reset();
+                }
                 // reinit the callstack
                 if (callstack.depth() > 1) {
                     callstack.clear();
                     callstack.push(globalNameSpace);
                 }
-                discard = false;
+                discard = eof = false;
                 will = null;
             }
         }
@@ -332,22 +336,18 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
      * parser.
      */
     private void cancel() {
-        JLineConsole jline = (JLineConsole)console;
+        final JLineConsole jline = (JLineConsole)console;
 
         if ((will != null) && !will.isDone()) {
             will.cancel(true);
             console.println("(... aborted ...)\n");
         } else {
+            discard = true;
             console.println("\n(... discarded ...)\n");
 
             try {
                 PipedWriter oldPipe = jline.pipe;
-                setConsole(jline = new JLineConsole(jline.lineReader));
-                /*
-                console.setIn(jline.getIn());
-                parser = new Parser(jline.getIn());
-                */
-                discard = true;
+                setConsole(new JLineConsole(jline.lineReader));
                 oldPipe.close();
             } catch (IOException x) {
                 // nothing to do...

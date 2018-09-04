@@ -39,7 +39,7 @@ public class BugFreeBshConsoleCLI extends BugFreeCLI {
         thenSTDOUTContains("Usage: ste.beanshell.ui.BshConsoleCLI");
     }
 
-    @Test(timeout = 500)
+    @Test(timeout = 1000)
     public void read_init_script() throws Exception {
         new BshConsoleCLI().launch("--welcome", "--init", "src/test/scripts/init1.bsh");
 

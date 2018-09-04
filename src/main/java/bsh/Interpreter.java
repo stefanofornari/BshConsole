@@ -105,7 +105,6 @@ public class Interpreter
         turns it on or off.
     */
     public static final ThreadLocal<Boolean> DEBUG = ThreadLocal.withInitial(()->Boolean.FALSE);
-    protected boolean EOF;
     public static boolean TRACE;
     public static boolean COMPATIBIILTY;
 
@@ -135,7 +134,6 @@ public class Interpreter
 
     /* --- Instance data --- */
 
-    transient protected Parser parser;
     protected NameSpace globalNameSpace;
     protected ConsoleInterface console;
 
@@ -227,7 +225,6 @@ public class Interpreter
     */
     public void setConsole(ConsoleInterface console) {
         this.console = console;
-        this.parser = new Parser(console.getIn());
 
         setu( "bsh.console", console );
     }
@@ -336,21 +333,20 @@ public class Interpreter
         Interpreter.debug("eval: nameSpace = ", nameSpace);
 
         CallStack callstack = new CallStack(nameSpace);
-        Parser localParser = new Parser(in);
+        Parser parser = new Parser(in);
 
         boolean eof = false;
         while( !eof )
         {
-            try
-            {
-                eof = localParser.Line();
-                if (localParser.jjtree.nodeArity() > 0) {
-                    callstack.node = (SimpleNode)localParser.jjtree.rootNode();
+            try {
+                eof = parser.Line();
+                if (parser.jjtree.nodeArity() > 0) {
+                    callstack.node = (SimpleNode)parser.jjtree.rootNode();
                     // nodes remember from where they were sourced
                     callstack.node.setSourceFile( sourceFileInfo );
 
-                    if (TRACE) {
-                        console.println( "// " + callstack.node.getText() );
+                    if (DEBUG.get()) {
+                        callstack.node.dump(">");
                     }
 
                     retVal = callstack.node.eval(callstack, this);
@@ -396,7 +392,7 @@ public class Interpreter
                     "Sourced file: "+sourceFileInfo+" unknown error: "
                     + e.getMessage(), callstack.node, callstack, e);
             } finally {
-                localParser.jjtree.reset();
+                parser.jjtree.reset();
 
                 // reinit the callstack
                 if ( callstack.depth() > 1 ) {
@@ -451,7 +447,6 @@ public class Interpreter
     /** Attempt the release of open resources.
      * @throws IOException */
     public void close() throws IOException {
-        EOF = true;
         if ( null != console. getErr() ) {
             if ( !console.getErr().equals(System.err) )
                 console.getErr().close();
@@ -643,24 +638,6 @@ public class Interpreter
     {
         return globalNameSpace.getThis( this ).getInterface( interf );
     }
-
-    /*  Methods for interacting with Parser */
-
-    /** Blocking call to read a line from the parser.
-     * @return true on EOF or false
-     * @throws ParseException on parser exception */
-    private boolean readLine() throws ParseException {
-        try {
-            return parser.Line();
-        } catch (ParseException e) {
-            yield();
-            if ( EOF )
-                return true;
-            throw e;
-        }
-    }
-
-    /*  End methods for interacting with Parser */
 
     /** Set thread yield delay time in milliseconds.
      * How long to wait for closing thread @see yield();
