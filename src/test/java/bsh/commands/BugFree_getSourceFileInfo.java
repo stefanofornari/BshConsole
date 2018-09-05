@@ -28,7 +28,6 @@ public class BugFree_getSourceFileInfo {
     @Test
     public void source_info() throws Exception {
         BshConsoleInterpreter bsh = new BshConsoleInterpreter();
-        bsh.eval("debug()");
 
         File f = new File("src/test/scripts/source_file_info.bsh");
         then(
