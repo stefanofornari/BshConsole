@@ -122,10 +122,9 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
             } catch (UserInterruptException x) {
                 cancel();
             } catch (EndOfFileException x) {
-                bshThread.interrupt();
-                close();
-                executor.shutdown();
                 jline.println("\n(... see you ...)\n");
+                close();
+                executor.shutdown(); bshThread.interrupt();
 
                 return;
             } catch (IOException x) {

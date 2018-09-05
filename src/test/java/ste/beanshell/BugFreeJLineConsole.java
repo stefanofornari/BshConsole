@@ -15,8 +15,8 @@
  */
 package ste.beanshell;
 
-import bsh.InterpreterEvent;
 import bsh.ConsoleInterface;
+import bsh.InterpreterEvent;
 import static bsh.InterpreterEvent.BUSY;
 import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;
@@ -175,5 +175,4 @@ public class BugFreeJLineConsole extends BugFreeCLI {
             .doesNotContain("T" + f2.hashCode())
             .doesNotContain("T" + f3.hashCode());
     }
-
 }
