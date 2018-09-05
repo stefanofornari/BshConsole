@@ -15,8 +15,8 @@
  */
 package ste.beanshell;
 
-import bsh.InterpreterEvent;
 import bsh.ConsoleInterface;
+import bsh.InterpreterEvent;
 import static bsh.InterpreterEvent.BUSY;
 import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;
@@ -72,9 +72,11 @@ public class JLineConsole implements ConsoleInterface {
         Status status = Status.getStatus(lineReader.getTerminal());
         List<AttributedString> lines = new ArrayList<>();
 
+        int width = lineReader.getTerminal().getWidth();
+
         lines.add(
             new AttributedString(
-                new String(new char[lineReader.getTerminal().getWidth()]).replace("\0", "-")
+                new String(new char[width]).replace("\0", "-")
             )
         );
 
@@ -93,7 +95,7 @@ public class JLineConsole implements ConsoleInterface {
                     tasksString.toString(),
                     AttributedStyle.INVERSE.foreground(2).background(AttributedStyle.WHITE)
                 ).toAnsi()
-            )
+            ).columnSubSequence(0, width)
         );
         status.update(lines);
         status.redraw();
