@@ -140,16 +140,10 @@ public class Interpreter
     /** If this interpeter is a child of another, the parent */
     protected Interpreter parent;
 
-    protected boolean
-        evalOnly,       // Interpreter has no input stream, use eval() only
-        interactive;    // Interpreter has a user, print prompts, etc.
-
-
-    /** thread yield time in milliseconds */
-    private int yield_for = -1;
+    protected boolean interactive;    // Interpreter has a user, print prompts, etc.
 
     /** by default in interactive mode System.exit() on EOF */
-    private boolean exitOnEOF = true;
+    protected boolean exitOnEOF = true;
 
     /** Control the verbose printing of results for the show() command. */
     private boolean showResults = true;
@@ -214,7 +208,6 @@ public class Interpreter
     */
     public Interpreter()  {
         this(new Console());
-        evalOnly = false;
         setu( "bsh.evalOnly", Primitive.FALSE );
     }
 
@@ -639,24 +632,7 @@ public class Interpreter
         return globalNameSpace.getThis( this ).getInterface( interf );
     }
 
-    /** Set thread yield delay time in milliseconds.
-     * How long to wait for closing thread @see yield();
-     * @param delay sleep time in milliseconds */
-    public void setYieldDelay(int delay) {
-        yield_for = delay;
-    }
-
-    /** Yield thread  to wait for closing.
-     * If yield delay has a value 0 or more the thread will
-     * sleep for so many milliseconds. */
-    private void yield() {
-        if ( 0 > yield_for )
-            return;
-        try {
-            Thread.sleep(yield_for);
-        } catch (InterruptedException e1) { /* ignore */ }
-    }
-
+    // TODO: remove; this is broken, it redirects System.out output only
     public static void redirectOutputToFile( String filename )
     {
         try {

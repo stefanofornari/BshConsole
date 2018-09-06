@@ -211,14 +211,16 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                             ret = ((ReturnControl) ret).value;
                         }
 
-                        if( ret != Primitive.VOID ) {
-                            setu("$_", ret);
-                            setu("$"+(++idx%10), ret);
-                            if ( getShowResults() ) {
-                                console.println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                        if (interactive) {
+                            if( ret != Primitive.VOID ) {
+                                setu("$_", ret);
+                                setu("$"+(++idx%10), ret);
+                                if ( getShowResults() ) {
+                                    console.println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
+                                }
+                            } else if ( getShowResults() ) {
+                                console.println("--> void");
                             }
-                        } else if ( getShowResults() ) {
-                            console.println("--> void");
                         }
                     }
                 }
@@ -229,6 +231,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                 if (DEBUG.get()) {
                     e.printStackTrace();
                 }
+                eof = !interactive;
             } catch (ParseException e) {
                 if (!discard) {
                     console.error("Parser Error: " + e.getMessage(DEBUG.get()) + " " + parser.jjtree.nodeArity());
@@ -237,7 +240,9 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     e.printStackTrace();
                 }
                 parser.reInitInput(console.getIn());
+                eof = !interactive;
             } catch (InterpreterError e) {
+                eof = !interactive;
                 console.error("Internal Error: " + e.getMessage());
             } catch (TargetError e) {
                 console.error("Target Exception: " + e.getMessage() );
@@ -245,17 +250,20 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     e.printStackTrace(DEBUG.get(), console.getErr());
                 }
                 setu("$_e", e.getTarget());
+                eof = !interactive;
             } catch (EvalError e) {
                 console.error( "Evaluation Error: "+e.getMessage() );
 
                 if (DEBUG.get()) {
                     e.printStackTrace();
                 }
+                eof = !interactive;
             } catch (Exception e) {
                 console.error("Unknown error: " + e);
                 if (DEBUG.get()) {
                     e.printStackTrace();
                 }
+                eof = !interactive;
             } finally {
                 if (discard) {
                     parser = new Parser(getConsole().getIn());
@@ -271,6 +279,9 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                 will = null;
             }
         }
+
+        if ( interactive && exitOnEOF )
+            System.exit(0);
     }
 
     @Override
