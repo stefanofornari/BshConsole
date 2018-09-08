@@ -234,7 +234,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                 eof = !interactive;
             } catch (ParseException e) {
                 if (!discard) {
-                    console.error("Parser Error: " + e.getMessage(DEBUG.get()) + " " + parser.jjtree.nodeArity());
+                    console.error("Parser Error: " + e.getMessage(DEBUG.get()));
                 }
                 if (DEBUG.get()) {
                     e.printStackTrace();
@@ -280,8 +280,9 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
             }
         }
 
-        if ( interactive && exitOnEOF )
+        if ( interactive && exitOnEOF ) {
             System.exit(0);
+        }
     }
 
     @Override

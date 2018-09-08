@@ -45,7 +45,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         STDOUT.clearLog();
     }
 
-    @Test(timeout = 500)
+    @Test(timeout = 1000)
     public void read_internal_init_scripts_from_resources() throws Exception {
         BshConsoleInterpreter bsh = new BshConsoleInterpreter();
 
@@ -176,7 +176,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         bsh.close(); T.interrupt();
     }
 
-    @Test(timeout = 1000)
+    @Test(timeout = 2000)
     public void interrupt_long_running_task() throws Exception {
         BshConsoleInterpreter bsh = new BshConsoleInterpreter();
         bsh.eval("getBshPrompt() { return \"abc> \"; };");
@@ -191,7 +191,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         final JLineConsole jline = (JLineConsole)bsh.console;
 
         jline.pipe.write("Thread.sleep(5000);\n"); jline.pipe.flush();
-        new WaitFor(250, new Condition() {
+        new WaitFor(500, new Condition() {
             @Override
             public boolean check() {
                 return (bsh.will != null);
@@ -203,10 +203,9 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         // interrupting the execution shall keep the same console interface
         //
         jline.lineReader.getTerminal().raise(Terminal.Signal.INT); // ^C
-        new WaitFor(250, new Condition() {
+        new WaitFor(500, new Condition() {
             @Override
             public boolean check() {
-                System.out.println("check WILL " + WILL);
                 return  WILL.isCancelled();
             }
         });

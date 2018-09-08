@@ -329,8 +329,8 @@ public class Interpreter
         Parser parser = new Parser(in);
 
         boolean eof = false;
-        while( !eof )
-        {
+        while (!Thread.interrupted() && !eof) {
+            // getConsole().on(new InterpreterEvent(READY, getBshPrompt()));
             try {
                 eof = parser.Line();
                 if (parser.jjtree.nodeArity() > 0) {
