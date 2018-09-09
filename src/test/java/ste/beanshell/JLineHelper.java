@@ -18,6 +18,7 @@ package ste.beanshell;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.reader.EndOfFileException;
@@ -35,11 +36,17 @@ import ste.beanshell.jline.TestLineReader;
 public class JLineHelper {
 
     public TestLineReader givenReader() throws Exception {
-        EofPipedInputStream in = new EofPipedInputStream();
+        return givenReaderWith(new EofPipedInputStream());
+    }
+
+    public TestLineReader givenReaderWith(InputStream in) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Terminal terminal = new DumbTerminal("terminal", "ansi", in, out, StandardCharsets.UTF_8);
         terminal.setSize(new Size(80, 25));
-        TestLineReader reader = new TestLineReader(terminal, "JLine", null, in);
+        TestLineReader reader = (in instanceof EofPipedInputStream)
+                              ? new TestLineReader(terminal, "JLine", null, in)
+                              : new TestLineReader(terminal, "JLine", null, new EofPipedInputStream(in)
+                              );
         reader.setKeyMap(LineReaderImpl.EMACS);
 
         return reader;

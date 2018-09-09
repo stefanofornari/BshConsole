@@ -17,8 +17,12 @@ public class EofPipedInputStream extends InputStream {
 
     private InputStream in;
 
-    public EofPipedInputStream(Reader r) {
-        in = new ReaderInputStream(r);
+    public EofPipedInputStream(Reader in) {
+        this.in = new ReaderInputStream(in);
+    }
+
+    public EofPipedInputStream(InputStream in) {
+        this.in = in;
     }
 
     public EofPipedInputStream() {

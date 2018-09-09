@@ -8,6 +8,7 @@
  */
 package ste.beanshell.jline;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -24,6 +25,11 @@ public class TestLineReader extends BshLineReader {
     public TestLineReader(Terminal terminal, String appName, Map<String, Object> variables, EofPipedInputStream in) {
         super(terminal, appName, variables);
         this.in = in;
+    }
+
+    public TestLineReader(Terminal terminal, String appName, Map<String, Object> variables, InputStream in) {
+        super(terminal, appName, variables);
+        this.in = new EofPipedInputStream(in);
     }
 
     @Override
