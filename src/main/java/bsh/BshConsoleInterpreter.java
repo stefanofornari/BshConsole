@@ -48,7 +48,6 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
 
     private Thread bshThread = null;
 
-    protected boolean discard = false;
     protected boolean waitForTask = true;
 
     BshNodeExecutor executor = null;
@@ -140,87 +139,90 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
 
         // init the callstack.
         CallStack callstack = new CallStack(globalNameSpace);
-        Parser parser = new Parser(getConsole().getIn());
 
         int idx = -1;
         boolean eof = false;
         while (!Thread.interrupted() && !eof) {
+            Parser parser = new Parser(getConsole().getIn());
+
             getConsole().on(new InterpreterEvent(READY, getBshPrompt()));
             try {
                 eof = parser.Line();
-                if (!discard && (parser.jjtree.nodeArity() > 0)) {
-                    final SimpleNode node = (SimpleNode) (parser.jjtree.rootNode());
+                if (!getConsole().isValid() || (parser.jjtree.nodeArity() == 0)) {
+                    continue;
+                }
 
-                    if (DEBUG.get()) {
-                        node.dump(">");
+                final SimpleNode node = (SimpleNode) (parser.jjtree.rootNode());
+
+                if (DEBUG.get()) {
+                    node.dump(">");
+                }
+
+                final CallStack CURRENT_CURRENT_STACK = callstack;
+                Object ret = null;
+                waitForTask = true;
+                will = (NodeFuture)executor.submit(new Callable() {
+                    @Override
+                    public Object call() throws Exception {
+                        return node.eval(CURRENT_CURRENT_STACK, THIS);
+                    }
+                });
+
+                getConsole().on(new InterpreterEvent(BUSY, will));
+                boolean inBackground = false;
+                while (!will.isDone()) {
+                    //
+                    // if the is a future running, let's create a new stack
+                    // so that in the case it is put in background, we have
+                    // a clean call stack
+                    //
+                    callstack = new CallStack(globalNameSpace);
+                    try {
+                        ret = will.get(25, TimeUnit.MILLISECONDS);
+                    } catch (TimeoutException c) {
+                        if (waitForTask) {
+                            continue;
+                        } else {
+                            if (!inBackground) {
+                                println("\n(... in background ...)\n");
+                                inBackground = true;
+                            }
+                        }
+
+                    } catch(InterruptedException | CancellationException x) {
+                        //
+                        // it will break at the end...
+                        //
+                    } catch (Throwable t) {
+                        if (t.getCause() instanceof EvalError) {
+                            throw (EvalError)t.getCause();
+                        } else {
+                            throw new TargetError(t.getCause(), node, callstack);
+                        }
+                    }
+                    break;
+                };
+
+                if (waitForTask && !will.isCancelled()) {
+                    // sanity check during development
+                    if (callstack.depth() > 1) {
+                        throw new InterpreterError(
+                                "Callstack growing: " + callstack);
                     }
 
-                    final CallStack CURRENT_CURRENT_STACK = callstack;
-                    Object ret = null;
-                    waitForTask = true;
-                    will = (NodeFuture)executor.submit(new Callable() {
-                        @Override
-                        public Object call() throws Exception {
-                            return node.eval(CURRENT_CURRENT_STACK, THIS);
-                        }
-                    });
+                    if (ret instanceof ReturnControl) {
+                        ret = ((ReturnControl) ret).value;
+                    }
 
-                    getConsole().on(new InterpreterEvent(BUSY, will));
-                    boolean inBackground = false;
-                    while (!will.isDone()) {
-                        //
-                        // if the is a future running, let's create a new stack
-                        // so that in the case it is put in background, we have
-                        // a clean call stack
-                        //
-                        callstack = new CallStack(globalNameSpace);
-                        try {
-                            ret = will.get(25, TimeUnit.MILLISECONDS);
-                        } catch (TimeoutException c) {
-                            if (waitForTask) {
-                                continue;
-                            } else {
-                                if (!inBackground) {
-                                    println("\n(... in background ...)\n");
-                                    inBackground = true;
-                                }
+                    if (interactive) {
+                        if( ret != Primitive.VOID ) {
+                            setu("$_", ret);
+                            setu("$"+(++idx%10), ret);
+                            if ( getShowResults() ) {
+                                console.println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
                             }
-
-                        } catch(InterruptedException | CancellationException x) {
-                            //
-                            // it will break at the end...
-                            //
-                        } catch (Throwable t) {
-                            if (t.getCause() instanceof EvalError) {
-                                throw (EvalError)t.getCause();
-                            } else {
-                                throw new TargetError(t.getCause(), node, callstack);
-                            }
-                        }
-                        break;
-                    };
-
-                    if (waitForTask && !will.isCancelled()) {
-                        // sanity check during development
-                        if (callstack.depth() > 1) {
-                            throw new InterpreterError(
-                                    "Callstack growing: " + callstack);
-                        }
-
-                        if (ret instanceof ReturnControl) {
-                            ret = ((ReturnControl) ret).value;
-                        }
-
-                        if (interactive) {
-                            if( ret != Primitive.VOID ) {
-                                setu("$_", ret);
-                                setu("$"+(++idx%10), ret);
-                                if ( getShowResults() ) {
-                                    console.println("--> $" + (idx%10) + " = " + StringUtil.typeValueString(ret));
-                                }
-                            } else if ( getShowResults() ) {
-                                console.println("--> void");
-                            }
+                        } else if ( getShowResults() ) {
+                            console.println("--> void");
                         }
                     }
                 }
@@ -233,7 +235,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                 }
                 eof = !interactive;
             } catch (ParseException e) {
-                if (!discard) {
+                if (!getConsole().isValid()) {
                     console.error("Parser Error: " + e.getMessage(DEBUG.get()));
                 }
                 if (DEBUG.get()) {
@@ -265,17 +267,12 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                 }
                 eof = !interactive;
             } finally {
-                if (discard) {
-                    parser = new Parser(getConsole().getIn());
-                } else {
-                    parser.jjtree.reset();
-                }
                 // reinit the callstack
                 if (callstack.depth() > 1) {
                     callstack.clear();
                     callstack.push(globalNameSpace);
                 }
-                discard = eof = false;
+                eof = false;
                 will = null;
             }
         }
@@ -297,6 +294,13 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
         bshThread.interrupt();
     }
 
+    /**
+     * Returns the current console attached to the interpreter. Note that console
+     * can change quite often, due to user interactions (e.g. ^C). Use getConsole()
+     * as a convenient method to get the most current JLineConsole.
+     *
+     * @return the current console as a JLineConsole object.
+     */
     public JLineConsole getConsole() {
         return (JLineConsole)console;
     }
@@ -353,17 +357,15 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
             will.cancel(true);
             console.println("(... aborted ...)\n");
         } else {
-            discard = true;
-            console.println("\n(... discarded ...)\n");
-
             try {
-                PipedWriter oldPipe = jline.pipe;
-                setConsole(new JLineConsole(jline.lineReader));
+                PipedWriter oldPipe = jline.pipe; jline.pipe = null;
+                setConsole(new JLineConsole(jline.lineReader)); // TODO: do we realle need to recreate a new console?
                 oldPipe.close();
             } catch (IOException x) {
                 // nothing to do...
                 x.printStackTrace();
             }
+            console.println("\n(... discarded ...)\n");
         }
         jline.lineReader.skipRedisplay();
     }

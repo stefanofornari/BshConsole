@@ -175,4 +175,12 @@ public class BugFreeJLineConsole extends BugFreeCLI {
             .doesNotContain("T" + f2.hashCode())
             .doesNotContain("T" + f3.hashCode());
     }
+
+    @Test
+    public void invalid_if_pipe_is_null() throws Exception {
+        JLineConsole console = new JLineConsole(H.givenReader());
+        then(console.isValid()).isTrue();
+        console.pipe = null;
+        then(console.isValid()).isFalse();
+    }
 }

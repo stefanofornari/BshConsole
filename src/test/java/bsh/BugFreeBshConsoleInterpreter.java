@@ -179,8 +179,10 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
     @Test(timeout = 2000)
     public void interrupt_long_running_task() throws Exception {
         BshConsoleInterpreter bsh = new BshConsoleInterpreter();
-        bsh.eval("getBshPrompt() { return \"abc> \"; };");
         bsh.consoleInit();
+        JLineConsole jline = bsh.getConsole();
+
+        bsh.eval("getBshPrompt() { return \"\"; };");
 
         final Thread T = new Thread(new Runnable() {
             @Override
@@ -188,7 +190,6 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
                 bsh.consoleStart();
             }
         }); T.start();
-        final JLineConsole jline = (JLineConsole)bsh.console;
 
         jline.pipe.write("Thread.sleep(5000);\n"); jline.pipe.flush();
         new WaitFor(500, new Condition() {

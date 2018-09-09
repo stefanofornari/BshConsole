@@ -101,6 +101,10 @@ public class JLineConsole implements ConsoleInterface {
         status.redraw();
     }
 
+    public boolean isValid() {
+        return (pipe != null);
+    }
+
     // -------------------------------------------------------- ConsoleInterface
 
     @Override
