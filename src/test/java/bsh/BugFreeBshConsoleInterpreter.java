@@ -102,7 +102,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
             public void run() {
                 bsh.consoleStart();
             }
-        }); T.start();
+        }); T.setDaemon(true); T.start();
 
         thenBshIsReady(bsh);
 
@@ -115,7 +115,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
                 return bsh.console != JLINE1;
             }
         });
-        final JLineConsole JLINE2 = (JLineConsole)bsh.console;
+        final JLineConsole JLINE2 = bsh.getConsole();
 
         JLINE2.pipe.write("print(\"__done__\");"); JLINE2.pipe.flush();
 
@@ -204,7 +204,7 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
         // interrupting the execution shall keep the same console interface
         //
         jline.lineReader.getTerminal().raise(Terminal.Signal.INT); // ^C
-        new WaitFor(500, new Condition() {
+        new WaitFor(1000, new Condition() {
             @Override
             public boolean check() {
                 return  WILL.isCancelled();
@@ -274,6 +274,32 @@ public class BugFreeBshConsoleInterpreter extends BugFreeCLI {
 
         then(PrivateAccess.getStaticValue(BshClassPath.class, "mappingFeedbackListener"))
              .isNotNull().isInstanceOf(EmptyMappingFeedback.class);
+    }
+
+    @Test
+    public void show_parser_errors() throws Exception {
+        BshConsoleInterpreter bsh = new BshConsoleInterpreter();
+        bsh.consoleInit();
+        JLineConsole jline = bsh.getConsole();
+
+        bsh.eval("getBshPrompt() { return \"\"; };");
+
+        final Thread T = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                bsh.consoleStart();
+            }
+        }); T.start();
+
+        jline.pipe.write("class {\n"); jline.pipe.flush();
+        new WaitFor(1000, new Condition() {
+            @Override
+            public boolean check() {
+                return STDERR.getLog().contains("Parser Error:");
+            }
+        });
+
+        bsh.close(); T.interrupt();
     }
 
     // --------------------------------------------------------- private methods
