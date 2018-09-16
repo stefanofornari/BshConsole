@@ -440,16 +440,17 @@ public class Interpreter
     /** Attempt the release of open resources.
      * @throws IOException */
     public void close() throws IOException {
-        if ( null != console. getErr() ) {
-            if ( !console.getErr().equals(System.err) )
-                console.getErr().close();
+        final ConsoleInterface C = console;
+        if ( null != C. getErr() ) {
+            if ( !C.getErr().equals(System.err) )
+                C.getErr().close();
         }
-        if ( null != console.getOut() ) {
-            if ( !console.getOut().equals(System.out) )
-                console.getOut().close();
+        if ( null != C.getOut() ) {
+            if ( !C.getOut().equals(System.out) )
+                C.getOut().close();
         }
-        if ( null != console.getIn() ) {
-            console.getIn().close();
+        if ( null != C.getIn() ) {
+            C.getIn().close();
         }
     }
 
