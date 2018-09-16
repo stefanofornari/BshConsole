@@ -97,11 +97,12 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
         executor = new BshNodeExecutor(this);
 
         bshThread = new Thread(this);
+        bshThread.setDaemon(true);
         bshThread.start();
 
         String line = null;
-        while (!Thread.interrupted()) {
-            JLineConsole jline = getConsole();
+        JLineConsole jline = null;
+        while (!Thread.interrupted() && ((jline = getConsole()) != null)) {
             try {
                 line = jline.lineReader.readLine();
 
@@ -142,6 +143,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
 
         int idx = -1;
         boolean eof = false;
+        JLineConsole oldConsole = getConsole();
         while (!Thread.interrupted() && !eof) {
             Parser parser = new Parser(getConsole().getIn());
 
@@ -233,18 +235,15 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                 if (DEBUG.get()) {
                     e.printStackTrace();
                 }
-                eof = !interactive;
             } catch (ParseException e) {
-                if (!getConsole().isValid()) {
+                if (oldConsole == getConsole()) {
                     console.error("Parser Error: " + e.getMessage(DEBUG.get()));
                 }
                 if (DEBUG.get()) {
                     e.printStackTrace();
                 }
                 parser.reInitInput(console.getIn());
-                eof = !interactive;
             } catch (InterpreterError e) {
-                eof = !interactive;
                 console.error("Internal Error: " + e.getMessage());
             } catch (TargetError e) {
                 console.error("Target Exception: " + e.getMessage() );
@@ -252,27 +251,24 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     e.printStackTrace(DEBUG.get(), console.getErr());
                 }
                 setu("$_e", e.getTarget());
-                eof = !interactive;
             } catch (EvalError e) {
                 console.error( "Evaluation Error: "+e.getMessage() );
 
                 if (DEBUG.get()) {
                     e.printStackTrace();
                 }
-                eof = !interactive;
             } catch (Exception e) {
                 console.error("Unknown error: " + e);
                 if (DEBUG.get()) {
                     e.printStackTrace();
                 }
-                eof = !interactive;
             } finally {
                 // reinit the callstack
                 if (callstack.depth() > 1) {
                     callstack.clear();
                     callstack.push(globalNameSpace);
                 }
-                eof = false;
+                eof = !interactive;
                 will = null;
             }
         }
@@ -351,7 +347,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
      * parser.
      */
     private void cancel() {
-        final JLineConsole jline = (JLineConsole)console;
+        final JLineConsole jline = getConsole();
 
         if ((will != null) && !will.isDone()) {
             will.cancel(true);
