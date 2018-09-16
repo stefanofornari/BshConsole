@@ -45,5 +45,4 @@ public class BshLineReader extends LineReaderImpl {
     public void skipRedisplay() {
         skipRedisplay = true;
     }
-
 }
