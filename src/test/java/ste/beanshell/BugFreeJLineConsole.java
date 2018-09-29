@@ -20,6 +20,7 @@ import bsh.InterpreterEvent;
 import static bsh.InterpreterEvent.BUSY;
 import static bsh.InterpreterEvent.DONE;
 import static bsh.InterpreterEvent.READY;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.PipedReader;
 import java.io.PipedWriter;
@@ -30,7 +31,6 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.terminal.impl.DumbTerminal;
 import org.jline.utils.Status;
 import org.junit.Test;
-import ste.beanshell.jline.TestBuffer;
 import ste.beanshell.jline.TestLineReader;
 import ste.xtest.cli.BugFreeCLI;
 import ste.xtest.reflect.PrivateAccess;
@@ -49,10 +49,10 @@ public class BugFreeJLineConsole extends BugFreeCLI {
 
     @Test
     public void constructor() throws Exception {
-        TestLineReader r = H.givenReader();
+        TestLineReader r = H.givenReaderWith(new ByteArrayInputStream("hello world\n".getBytes()));
         JLineConsole console = new JLineConsole(r);
 
-        H.thenLinesAre((TestLineReader)console.lineReader, "hello world\n", new TestBuffer("hello world").CR());
+        H.thenLinesAre((TestLineReader)console.lineReader, "hello world\n");
     }
 
     @Test

@@ -16,6 +16,7 @@
 package ste.beanshell;
 
 import bsh.BshConsoleInterpreter;
+import java.io.ByteArrayInputStream;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -68,17 +69,26 @@ public class BugFreeBshCompleter {
         BSH.set("myvar", "");
         BSH.eval("myfunc(s){}");
 
-        TestLineReader reader = H.givenReader();
+        TestLineReader reader = givenReader(BSH, "System.eq");
+        H.thenBufferIs(reader, "System.equals");
 
-        reader.setCompleter(new BshCompleter(BSH));
-
-        H.thenBufferIs(reader, "System.equals", new TestBuffer("System.eq").tab());
-        H.thenBufferIs(reader, "dummy", new TestBuffer("dummy").tab());
-        H.thenBufferIs(reader, "myvar", new TestBuffer("myv").tab());
-        H.thenBufferIs(reader, "myfunc", new TestBuffer("myf").tab());
+        reader = givenReader(BSH, "dummy"); H.thenBufferIs(reader, "dummy");
+        reader = givenReader(BSH, "myv"); H.thenBufferIs(reader, "myvar");
+        reader = givenReader(BSH, "myfunc"); H.thenBufferIs(reader, "myfunc");
     }
 
     // --------------------------------------------------------- private methods
 
+    private TestLineReader givenReader(BshConsoleInterpreter bsh, String str)
+    throws Exception {
+        final JLineHelper H = new JLineHelper();
 
+        TestLineReader reader = H.givenReaderWith(
+            new ByteArrayInputStream(new TestBuffer(str).tab().getBytes())
+        );
+
+        reader.setCompleter(new BshCompleter(bsh));
+
+        return reader;
+    }
 }

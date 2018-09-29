@@ -15,7 +15,6 @@
  */
 package ste.beanshell;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,7 +26,6 @@ import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.impl.DumbTerminal;
 import ste.beanshell.jline.EofPipedInputStream;
-import ste.beanshell.jline.TestBuffer;
 import ste.beanshell.jline.TestLineReader;
 
 /**
@@ -52,13 +50,11 @@ public class JLineHelper {
         return reader;
     }
 
-    public void thenBufferIs(final TestLineReader reader, final String expected, final TestBuffer buffer) throws IOException {
+    public void thenBufferIs(final TestLineReader reader, final String expected) throws IOException {
         reader.getHistory().purge();
 
         reader.list = false;
         reader.menu = false;
-
-        reader.in.setIn(new ByteArrayInputStream(buffer.getBytes()));
 
         // run it through the reader
         try {
@@ -70,13 +66,11 @@ public class JLineHelper {
         then(reader.getBuffer().toString()).isEqualTo(expected);
     }
 
-    public void thenLinesAre(final TestLineReader reader, final String expected, final TestBuffer input) throws IOException {
+    public void thenLinesAre(final TestLineReader reader, final String expected) throws IOException {
         reader.getHistory().purge();
 
         reader.list = false;
         reader.menu = false;
-
-        reader.in.setIn(new ByteArrayInputStream(input.getBytes()));
 
         // run it through the reader
         StringBuilder sb = new StringBuilder();
