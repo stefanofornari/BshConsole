@@ -68,7 +68,13 @@ public class JLineConsole implements ConsoleInterface {
         }
     }
 
-    private void status(String msg) {
+    /**
+     * this method shall be synchronized, otherwise multiple thread may call it
+     * and each will try to change the status corrupting the ANSI sequence.
+     *
+     * @param msg - the status message to display
+     */
+    private synchronized void status(String msg) {
         Status status = Status.getStatus(lineReader.getTerminal());
         List<AttributedString> lines = new ArrayList<>();
 
