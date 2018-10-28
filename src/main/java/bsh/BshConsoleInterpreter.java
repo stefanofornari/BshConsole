@@ -180,7 +180,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     //
                     callstack = new CallStack(globalNameSpace);
                     try {
-                        ret = will.get(25, TimeUnit.MILLISECONDS);
+                        will.get(25, TimeUnit.MILLISECONDS);
                     } catch (TimeoutException c) {
                         if (waitForTask) {
                             continue;
@@ -204,6 +204,10 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     }
                     break;
                 };
+
+                if (waitForTask) {
+                    ret = will.get();
+                }
 
                 if (waitForTask && !will.isCancelled()) {
                     // sanity check during development
