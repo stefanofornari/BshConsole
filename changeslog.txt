@@ -1,3 +1,9 @@
+20181104
+--------
+- fixed issue #24 - Results of last command not properly displayed
+- fixed issue #25 - Status bar get corrupted if too many tasks are running concurrently
+- release v1.2.1
+
 20180825
 --------
 - fixed issue #21 - TokenMgrException on ^C
