@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.stefanofornari</groupId>
     <artifactId>bsh-console</artifactId>
-    <version>1.2.1-SNAPSHOT</version>
+    <version>1.2.1</version>
     <packaging>jar</packaging>
 
     <name>BshConsole</name>
@@ -215,7 +215,7 @@
     <scm>
         <connection>scm:git:git@github.com:stefanofornari/BshConsole.git</connection>
         <url>https://github.com/stefanofornari/BshConsole</url>
-        <tag>HEAD</tag>
+        <tag>bsh-console-1.2.1</tag>
     </scm>
 
     <distributionManagement>
