@@ -1,3 +1,7 @@
+20181130
+--------
+ - implemented issue #28 - Replace beanshell standard help system with a more extensible help system
+
 20181104
 --------
 - fixed issue #24 - Results of last command not properly displayed

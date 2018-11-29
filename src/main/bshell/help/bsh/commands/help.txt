@@ -1,0 +1,84 @@
+help()
+------
+
+This command shows commands help text accordingly to the following rules.
+
+Given a root help directory stored in the beanshell variable bsh.help, all files
+with extension .txt represents a command help. help() walks through the
+directory tree looking for files with extension .txt and outputs its content
+on the console. Before printing the content of the file, help() prints the name
+of the command derived from the path of the help file stripped out of the .txt
+extension and turning the parent directory into a package name with the usual
+Java convention. Files with extension other than .txt are ignored.
+
+For example, given bsh.help set to /opt/bshell/help and the following directory
+structure:
+
+/opt
+    /bshell
+           /help
+                hello.txt
+                ignore.me
+                /bsh
+                    /commands
+                             cls.txt
+                             help.txt
+
+help() shows an output similar to:
+
+
+    hello
+    =====
+
+    {content of help/hello.txt}
+
+    bsh.commands.cls
+    ================
+
+    {content of help/bsh/commands/cls.txt}
+
+    bsh.commands.help
+    =================
+
+    {content of help/bsh/commands/help.txt}
+
+
+help(name)
+----------
+
+A variation of the help() command that displays all help files ending with
+{name}.txt
+
+For example, given bsh.help set to /opt/bshell/help and the following directory
+structure
+
+/opt
+    /bshell
+           /help
+                hello.txt
+                /bsh
+                    /commands
+                             cls.txt
+                             help.txt
+                /com
+                    /acme
+                         hello.txt
+
+show("cls") shows:
+
+    bsh.commands.cls
+    ================
+
+    {content of help/bsh/commands/cls.txt}
+
+show("hello") shows:
+
+    hello
+    =====
+
+    {content of help/hello.txt}
+
+    com.acme.hello
+    ==============
+
+    {content of help/com/acme/hello.txt}
