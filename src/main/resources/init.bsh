@@ -7,3 +7,9 @@ getBshPrompt() {
 }
 
 HISTORY_FILE=System.getProperty("user.home") + "/.bshell.history";
+
+//
+// Help system configuration
+//
+bshell.help="help";
+
