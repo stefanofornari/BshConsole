@@ -180,7 +180,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     //
                     callstack = new CallStack(globalNameSpace);
                     try {
-                        will.get(25, TimeUnit.MILLISECONDS);
+                        ret = will.get(25, TimeUnit.MILLISECONDS);
                     } catch (TimeoutException c) {
                         if (waitForTask) {
                             continue;
@@ -204,10 +204,6 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     }
                     break;
                 };
-
-                if (waitForTask) {
-                    ret = will.get();
-                }
 
                 if (waitForTask && !will.isCancelled()) {
                     // sanity check during development
@@ -240,7 +236,7 @@ public class BshConsoleInterpreter extends Interpreter implements Runnable {
                     e.printStackTrace();
                 }
             } catch (ParseException e) {
-                if (oldConsole == getConsole()) {
+                if (!getConsole().isValid()) {
                     console.error("Parser Error: " + e.getMessage(DEBUG.get()));
                 }
                 if (DEBUG.get()) {

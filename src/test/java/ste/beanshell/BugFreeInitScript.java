@@ -17,6 +17,7 @@ package ste.beanshell;
 
 import bsh.BshConsoleInterpreter;
 import java.io.InputStreamReader;
+import org.apache.commons.io.IOUtils;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 
@@ -33,6 +34,12 @@ public class BugFreeInitScript {
         then((String)bsh.get("p")).isEqualTo("\u001b[34;1mbsh #\u001b[0m ");
         bsh.eval("getBshPrompt() { return \"HELLO2\"; }; p = getBshPrompt();");
         then((String)bsh.get("p")).isEqualTo("HELLO2");
+    }
+
+    @Test
+    public void set_bsh_help() throws Exception {
+        BshConsoleInterpreter bsh = givenInterpreterWithInitScript();
+        then(bsh.get("bshell.help")).isEqualTo("help");
     }
 
     // --------------------------------------------------------- private methods
