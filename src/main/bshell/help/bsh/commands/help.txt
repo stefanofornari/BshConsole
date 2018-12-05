@@ -1,13 +1,13 @@
 help()
 ------
 
-This command shows commands help text accordingly to the following rules.
+This command shows help text accordingly to the following rules.
 
-Given a root help directory stored in the beanshell variable bshell.help, all
+Given a root directory pointed by the beanshell variable bshell.help, each
 files with extension .txt represents a command help. help() walks through the
 directory tree looking for files with extension .txt and outputs its content
 on the console. Before printing the content of the file, help() prints the name
-of the command derived from the path of the help file stripped out of the .txt
+of the command derived from the path of the help file stripping out of the .txt
 extension and turning the parent directory into a package name with the usual
 Java convention. Files with extension other than .txt are ignored.
 
@@ -19,7 +19,7 @@ directory structure:
            /help
                 hello.txt
                 ignore.me
-                /bsh
+                /bshell
                     /commands
                              cls.txt
                              help.txt
@@ -32,22 +32,21 @@ help() shows an output similar to:
 
     {content of help/hello.txt}
 
-    bsh.commands.cls
-    ================
+    bshell.commands.cls
+    ===================
 
-    {content of help/bsh/commands/cls.txt}
+    {content of help/bshell/commands/cls.txt}
 
-    bsh.commands.help
-    =================
+    bshell.commands.help
+    ====================
 
-    {content of help/bsh/commands/help.txt}
+    {content of help/bshell/commands/help.txt}
 
 
 help(name)
 ----------
 
-A variation of the help() command that displays all help files ending with
-{name}.txt
+A variation of the help() that displays all help files ending with {name}.txt
 
 For example, given bshell.help set to /opt/bshell/help and the following
 directory structure
@@ -56,7 +55,7 @@ directory structure
     /bshell
            /help
                 hello.txt
-                /bsh
+                /bshell
                     /commands
                              cls.txt
                              help.txt
@@ -64,14 +63,14 @@ directory structure
                     /acme
                          hello.txt
 
-show("cls") shows:
+help("cls") shows:
 
-    bsh.commands.cls
-    ================
+    bshell.commands.cls
+    ===================
 
-    {content of help/bsh/commands/cls.txt}
+    {content of help/bshell/commands/cls.txt}
 
-show("hello") shows:
+help("hello") shows:
 
     hello
     =====
