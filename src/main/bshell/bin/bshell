@@ -34,4 +34,4 @@ JAVA_OPTS=""
 load_config $scriptname
 
 exec 2>&1
-exec $uidcmd $javacmd $JAVA_OPTS ste.beanshell.ui.BshConsoleCLI --init "scripts/init.bsh" $*
+exec $uidcmd $javacmd $JAVA_OPTS ste.bshell.ui.BshConsoleCLI --init "scripts/init.bsh" $*
