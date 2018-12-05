@@ -13,12 +13,14 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package bsh.commands;
+package ste.bshell.commands;
 
 import bsh.BshConsoleInterpreter;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
 import ste.bshell.JLineConsole;
+import ste.bshell.JLineConsole;
+import ste.bshell.JLineHelper;
 import ste.bshell.JLineHelper;
 import ste.bshell.jline.TestLineReader;
 
