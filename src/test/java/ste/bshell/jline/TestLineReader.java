@@ -6,8 +6,9 @@
  *
  * http://www.opensource.org/licenses/bsd-license.php
  */
-package ste.beanshell.jline;
+package ste.bshell.jline;
 
+import ste.bshell.jline.BshLineReader;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;

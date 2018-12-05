@@ -13,31 +13,19 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package ste.beanshell;
+package ste.bshell;
 
-import bsh.InterpreterEvent;
-import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
+import bsh.util.NameCompletionTable;
+import java.util.List;
 
 /**
- *
- * @param <T> return value type
+ * TODO: make a PR to make getMatchingNames() public
  */
-public class NodeFuture<T> extends FutureTask<T> {
-
-    final private JLineConsole console;
-
-    public NodeFuture(Callable<T> callable, JLineConsole console) {
-        super(callable);
-        if (console == null) {
-            throw new NullPointerException("console can not be null");
-        }
-        this.console = console;
-    }
-
+public class JlineNameCompletionTable extends NameCompletionTable {
+    
     @Override
-    protected void done() {
-        console.on(new InterpreterEvent("DONE", this));
+    public void getMatchingNames(String part, List found) {
+        super.getMatchingNames(part, found);
     }
-
+    
 }

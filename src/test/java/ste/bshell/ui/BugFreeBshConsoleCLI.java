@@ -3,8 +3,9 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ste.beanshell.ui;
+package ste.bshell.ui;
 
+import ste.bshell.ui.BshConsoleCLI;
 import java.io.File;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;

@@ -33,13 +33,13 @@ import org.jline.reader.UserInterruptException;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.utils.InfoCmp;
-import ste.beanshell.BshCompleter;
-import ste.beanshell.BshNodeExecutor;
-import ste.beanshell.JLineConsole;
-import ste.beanshell.NodeFuture;
-import ste.beanshell.jline.BshLineReader;
-import ste.beanshell.jline.BshLineReaderBuilder;
-import static ste.beanshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
+import ste.bshell.BshCompleter;
+import ste.bshell.BshNodeExecutor;
+import ste.bshell.JLineConsole;
+import ste.bshell.NodeFuture;
+import ste.bshell.jline.BshLineReader;
+import ste.bshell.jline.BshLineReaderBuilder;
+import static ste.bshell.ui.BshConsoleCLI.VAR_HISTORY_FILE;
 
 /**
  *

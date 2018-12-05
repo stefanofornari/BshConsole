@@ -26,7 +26,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import ste.beanshell.JLineConsole;
+import ste.bshell.JLineConsole;
 import ste.xtest.cli.BugFreeCLI;
 import ste.xtest.concurrent.Condition;
 import ste.xtest.concurrent.WaitFor;

@@ -6,7 +6,7 @@
  *
  * http://www.opensource.org/licenses/bsd-license.php
  */
-package ste.beanshell.jline;
+package ste.bshell.jline;
 
 import bsh.Parser;
 import java.io.IOError;

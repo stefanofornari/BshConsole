@@ -13,7 +13,7 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package ste.beanshell;
+package ste.bshell;
 
 import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
@@ -31,7 +31,7 @@ import java.util.concurrent.Future;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 import org.jline.utils.Status;
-import ste.beanshell.jline.BshLineReader;
+import ste.bshell.jline.BshLineReader;
 
 /**
  *

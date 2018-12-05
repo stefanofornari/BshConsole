@@ -13,36 +13,31 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package ste.beanshell.jline;
+package ste.bshell;
 
-import java.util.Map;
-import org.jline.reader.impl.LineReaderImpl;
-import org.jline.terminal.Terminal;
-import org.jline.utils.AttributedString;
+import bsh.InterpreterEvent;
+import java.util.concurrent.Callable;
+import java.util.concurrent.FutureTask;
 
 /**
  *
+ * @param <T> return value type
  */
-public class BshLineReader extends LineReaderImpl {
+public class NodeFuture<T> extends FutureTask<T> {
 
-    public BshLineReader(Terminal terminal, String appName, Map<String, Object> variables) {
-        super(terminal, appName, variables);
+    final private JLineConsole console;
+
+    public NodeFuture(Callable<T> callable, JLineConsole console) {
+        super(callable);
+        if (console == null) {
+            throw new NullPointerException("console can not be null");
+        }
+        this.console = console;
     }
 
     @Override
-    public boolean redisplay() {
-        if (display != null) {
-            return super.redisplay();
-        }
-
-        return false;
+    protected void done() {
+        console.on(new InterpreterEvent("DONE", this));
     }
 
-    public AttributedString getPrompt() {
-        return prompt;
-    }
-
-    public void skipRedisplay() {
-        skipRedisplay = true;
-    }
 }

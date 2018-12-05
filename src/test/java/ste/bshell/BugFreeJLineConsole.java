@@ -13,8 +13,9 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package ste.beanshell;
+package ste.bshell;
 
+import ste.bshell.JLineConsole;
 import bsh.ConsoleInterface;
 import bsh.InterpreterEvent;
 import static bsh.InterpreterEvent.BUSY;
@@ -31,7 +32,7 @@ import static org.assertj.core.api.BDDAssertions.then;
 import org.jline.terminal.impl.DumbTerminal;
 import org.jline.utils.Status;
 import org.junit.Test;
-import ste.beanshell.jline.TestLineReader;
+import ste.bshell.jline.TestLineReader;
 import ste.xtest.cli.BugFreeCLI;
 import ste.xtest.reflect.PrivateAccess;
 

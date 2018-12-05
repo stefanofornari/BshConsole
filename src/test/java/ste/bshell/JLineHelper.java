@@ -13,7 +13,7 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package ste.beanshell;
+package ste.bshell;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,8 +25,8 @@ import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.impl.DumbTerminal;
-import ste.beanshell.jline.EofPipedInputStream;
-import ste.beanshell.jline.TestLineReader;
+import ste.bshell.jline.EofPipedInputStream;
+import ste.bshell.jline.TestLineReader;
 
 /**
  *

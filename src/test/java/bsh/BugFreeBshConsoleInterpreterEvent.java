@@ -21,7 +21,7 @@ import static bsh.InterpreterEvent.READY;
 import java.util.ArrayList;
 import java.util.concurrent.Future;
 import static org.assertj.core.api.BDDAssertions.then;
-import ste.beanshell.JLineConsole;
+import ste.bshell.JLineConsole;
 import ste.xtest.concurrent.Condition;
 import ste.xtest.concurrent.WaitFor;
 

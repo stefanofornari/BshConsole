@@ -13,19 +13,36 @@
  * DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR DISTRIBUTING
  * THIS SOFTWARE OR ITS DERIVATIVES.
  */
-package ste.beanshell;
+package ste.bshell.jline;
 
-import bsh.util.NameCompletionTable;
-import java.util.List;
+import java.util.Map;
+import org.jline.reader.impl.LineReaderImpl;
+import org.jline.terminal.Terminal;
+import org.jline.utils.AttributedString;
 
 /**
- * TODO: make a PR to make getMatchingNames() public
+ *
  */
-public class JlineNameCompletionTable extends NameCompletionTable {
-    
-    @Override
-    public void getMatchingNames(String part, List found) {
-        super.getMatchingNames(part, found);
+public class BshLineReader extends LineReaderImpl {
+
+    public BshLineReader(Terminal terminal, String appName, Map<String, Object> variables) {
+        super(terminal, appName, variables);
     }
-    
+
+    @Override
+    public boolean redisplay() {
+        if (display != null) {
+            return super.redisplay();
+        }
+
+        return false;
+    }
+
+    public AttributedString getPrompt() {
+        return prompt;
+    }
+
+    public void skipRedisplay() {
+        skipRedisplay = true;
+    }
 }

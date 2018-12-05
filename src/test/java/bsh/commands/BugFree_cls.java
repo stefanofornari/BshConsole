@@ -18,9 +18,9 @@ package bsh.commands;
 import bsh.BshConsoleInterpreter;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Test;
-import ste.beanshell.JLineConsole;
-import ste.beanshell.JLineHelper;
-import ste.beanshell.jline.TestLineReader;
+import ste.bshell.JLineConsole;
+import ste.bshell.JLineHelper;
+import ste.bshell.jline.TestLineReader;
 
 /**
  *
