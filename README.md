@@ -16,6 +16,6 @@ The easiest way to get BshConsole is to download the distribution package from m
 - In BshConsole the BeanShell variable bsh.propmt does not control the prompt anymore, use getBshPrompt() instead.
 - use cls() to clear the screen (since 1.2.0)
 
-
 # Building from source
 You can build BshConsole from source as well, with the following caveat: BshConsole is based on the latest (HEAD/SNAPHOT) of Beanshell 2.1.0; this has not been released yet and is currently (Aug 4th, 2018) available only building from source as a maven snapshot. This prevented to release a version of BshConsole. To overcome this problem, BshConsole uses a released version of a Beanshell snapshot from the fork https://github.com/stefanofornari/beanshell. You should be able to replace a fresh build of the Beanshell jar into <bshconsole>/lib without any problem. If you encounter any issues, please open a ticket.
+To deploy on maven central after releasing: mvn -Prelease-sign-artifacts package deploy -DskipTests
