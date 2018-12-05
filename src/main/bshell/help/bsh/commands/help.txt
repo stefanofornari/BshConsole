@@ -46,7 +46,8 @@ help() shows an output similar to:
 help(name)
 ----------
 
-A variation of the help() that displays all help files ending with {name}.txt
+A variation of the help() that displays all help files named {name}.txt
+(regardless the subdir they are in).
 
 For example, given bshell.help set to /opt/bshell/help and the following
 directory structure

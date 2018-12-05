@@ -36,7 +36,12 @@ public class help {
 
     public static final String HELP = "bshell.help";
 
-    public static void invoke(final Interpreter bsh, CallStack callstack)
+    public static void invoke(final Interpreter bsh, final CallStack callstack)
+    throws EvalError {
+        invoke(bsh, callstack, null);
+    }
+
+    public static void invoke(final Interpreter bsh, final CallStack callstack, final String name)
     throws EvalError {
         if (bsh.get(HELP) == null) {
             throw new EvalError("please set bsh.help to an existing and readable directory", null, callstack);
@@ -56,7 +61,8 @@ public class help {
                     .filter(new Predicate<Path>() {
                         @Override
                         public boolean test(Path p) {
-                            return p.toString().endsWith(".txt");
+                            return (name == null) ? p.toString().endsWith(".txt")
+                                                  : String.valueOf(p.getFileName()).equals(name + ".txt");
                         }
                     }).forEach(new Consumer<Path>() {
                         @Override

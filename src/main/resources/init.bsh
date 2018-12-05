@@ -1,3 +1,5 @@
+importCommands("ste/bshell/commands");
+
 printBanner() {
   print("Welcome to bshell ${version}\n");
 }

@@ -46,20 +46,14 @@ public class BugFree_help {
         bsh.set("bshell.help", "src/test/bshell/help");
         help.invoke(bsh, null);
         then(STDOUT.getLog())
-            .contains("load\n")
-            .contains("\n====\n")
-            .contains("load(filename)\n")
-            .contains("\n--------------")
+            .contains("load\n====\n")
+            .contains("load(filename)\n--------------")
             .contains("description for load")
-            .contains("com.cls\n")
-            .contains("\n=======\n")
-            .contains("cls()")
-            .contains("\n-----")
+            .contains("com.cls\n=======\n")
+            .contains("cls()\n-----")
             .contains("description for cls")
-            .contains("com.acme.app.filter\n")
-            .contains("\n===================\n")
-            .contains("filter(dataset, column, value)")
-            .contains("\n------------------------------")
+            .contains("com.acme.app.filter\n===================\n")
+            .contains("filter(dataset, column, value)\n------------------------------")
             .contains("description for load");
     }
 
@@ -101,4 +95,26 @@ public class BugFree_help {
         }
     }
 
+    @Test
+    public void not_existing_command_name() throws Exception {
+        final Interpreter bsh = new Interpreter();
+        bsh.set("bshell.help", "src/test/bshell/help");
+        help.invoke(bsh, null, "none");
+        then(STDOUT.getLog()).isEmpty();
+    }
+
+    @Test
+    public void existing_command_name() throws Exception {
+        final Interpreter bsh = new Interpreter();
+        bsh.set("bshell.help", "src/test/bshell/help");
+        help.invoke(bsh, null, "filter");
+        then(STDOUT.getLog())
+            .contains("com.acme.app.filter\n===================\n");
+
+        STDOUT.clearLog();
+        help.invoke(bsh, null, "cls");
+        then(STDOUT.getLog())
+            .contains("com.cls\n=======\n")
+            .contains("\n\norg.cls\n=======\n");
+    }
 }
