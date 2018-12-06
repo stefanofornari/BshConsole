@@ -5,7 +5,6 @@
  */
 package ste.bshell.ui;
 
-import ste.bshell.ui.BshConsoleCLI;
 import java.io.File;
 import static org.assertj.core.api.BDDAssertions.then;
 import org.junit.Before;
@@ -40,7 +39,7 @@ public class BugFreeBshConsoleCLI extends BugFreeCLI {
         thenSTDOUTContains("Usage: ste.beanshell.ui.BshConsoleCLI");
     }
 
-    @Test(timeout = 1000)
+    @Test(timeout = 5000)
     public void read_init_script() throws Exception {
         new BshConsoleCLI().launch("--welcome", "--init", "src/test/scripts/init1.bsh");
 
