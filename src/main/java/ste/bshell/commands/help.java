@@ -15,7 +15,6 @@
  */
 package ste.bshell.commands;
 
-import bsh.BshConsoleInterpreter;
 import bsh.CallStack;
 import bsh.EvalError;
 import bsh.Interpreter;
@@ -64,7 +63,9 @@ public class help {
                             return (name == null) ? p.toString().endsWith(".txt")
                                                   : String.valueOf(p.getFileName()).equals(name + ".txt");
                         }
-                    }).forEach(new Consumer<Path>() {
+                    })
+                    .sorted()
+                    .forEachOrdered(new Consumer<Path>() {
                         @Override
                         public void accept(Path p) {
                             String name = StringUtils.removeEnd(
