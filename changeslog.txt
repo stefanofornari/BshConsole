@@ -1,3 +1,7 @@
+20181208
+--------
+- released v1.3.0 with new help system (issue #28)
+
 20181205
 --------
  - implemented issue #28 - Replace beanshell standard help system with a more extensible help system

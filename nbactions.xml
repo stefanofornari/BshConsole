@@ -41,4 +41,16 @@
                 <goals>package</goals>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-deploy</actionName>
+            <displayName>Deploy to maven central</displayName>
+            <goals>
+                <goal>release:perform</goal>
+                <goal>deploy</goal>
+            </goals>
+            <properties>
+                <arguments>-Dmaven.javadoc.skip=true -DskipTests</arguments>
+                <goals>package</goals>
+            </properties>
+        </action>
     </actions>
